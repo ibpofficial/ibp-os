@@ -26,10 +26,31 @@ interface VFSStore {
   renameNode: (oldPath: string, newPath: string) => Promise<void>;
 }
 
+const INITIAL_WELCOME_CONTENT = `# Welcome to IBP OS!
+# A beginner-friendly, educational operating system and language.
+
+keep name = "Explorer"
+say "Hello, {name}! Welcome to IBP Studio."
+shout "let's build something fun!"
+
+recipe double(x) => x * 2
+keep numbers = [1, 2, 3, 4, 5]
+say "Doubled: {numbers |> map(double)}"
+
+celebrate
+`;
+
 export const useVFSStore = create<VFSStore>((set, get) => ({
   isInitialized: false,
-  activeFilePath: null,
-  openTabs: [],
+  activeFilePath: 'IBP://USERS/guest/projects/welcome.ibp',
+  openTabs: [
+    {
+      path: 'IBP://USERS/guest/projects/welcome.ibp',
+      name: 'welcome.ibp',
+      content: INITIAL_WELCOME_CONTENT,
+      isDirty: false,
+    },
+  ],
   files: [],
 
   init: async () => {
@@ -138,3 +159,4 @@ export const useVFSStore = create<VFSStore>((set, get) => ({
     await get().refreshFiles();
   },
 }));
+

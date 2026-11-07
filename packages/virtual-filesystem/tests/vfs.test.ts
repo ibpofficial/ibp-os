@@ -55,3 +55,4 @@ describe('VirtualFileSystem (VFS)', () => {
     expect(await vfs.exists(filePath)).toBe(false);
   });
 });
+

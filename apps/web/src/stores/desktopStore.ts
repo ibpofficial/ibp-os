@@ -39,11 +39,25 @@ interface DesktopStore {
 }
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
-  isBooted: false,
+  isBooted: true,
   currentUser: 'guest',
   theme: 'dark',
-  windows: [],
-  activeWindowId: null,
+  windows: [
+    {
+      id: 'studio-init',
+      appId: 'studio',
+      title: 'IBP Studio',
+      icon: 'Code',
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: 10,
+      x: 60,
+      y: 40,
+      width: 1050,
+      height: 680,
+    },
+  ],
+  activeWindowId: 'studio-init',
   topZIndex: 10,
   isStartMenuOpen: false,
   isCommandPaletteOpen: false,
@@ -143,3 +157,4 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     }));
   },
 }));
+

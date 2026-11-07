@@ -156,3 +156,4 @@ export const StartMenu: React.FC = () => {
     </div>
   );
 };
+

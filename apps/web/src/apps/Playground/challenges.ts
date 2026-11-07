@@ -232,3 +232,4 @@ export const CHALLENGES: Challenge[] = [
     hint: 'Use `sort`, `first`, `last`, and `average`.',
   },
 ];
+

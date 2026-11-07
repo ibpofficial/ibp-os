@@ -4,6 +4,7 @@ import { Trophy, CheckCircle, Sparkles, AlertCircle, Play, Star, Award } from 'l
 import confetti from 'canvas-confetti';
 import { CHALLENGES, Challenge } from './challenges';
 import { executeIBP } from '@ibp/engine';
+import { configureMonaco } from '../../components/Editor/monacoConfig';
 
 export const PlaygroundApp: React.FC = () => {
   const [selectedChallengeId, setSelectedChallengeId] = useState<string>(CHALLENGES[0].id);
@@ -176,6 +177,7 @@ export const PlaygroundApp: React.FC = () => {
             height="100%"
             language="ibp"
             theme="ibp-dark"
+            beforeMount={configureMonaco}
             value={code}
             onChange={(val) => setCode(val || '')}
             options={{
@@ -210,3 +212,4 @@ export const PlaygroundApp: React.FC = () => {
     </div>
   );
 };
+

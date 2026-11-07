@@ -87,3 +87,4 @@ export const SettingsApp: React.FC = () => {
     </div>
   );
 };
+

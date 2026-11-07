@@ -303,6 +303,7 @@ export const StudioApp: React.FC = () => {
                 height="100%"
                 language="ibp"
                 theme="ibp-dark"
+                beforeMount={configureMonaco}
                 value={activeTab.content}
                 onChange={(val) => updateTabContent(activeTab.path, val || '')}
                 options={{
@@ -456,3 +457,4 @@ export const StudioApp: React.FC = () => {
     </div>
   );
 };
+

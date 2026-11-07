@@ -209,3 +209,4 @@ export function updateEditorMarkers(monaco: Monaco, model: any, code: string): v
 
   monaco.editor.setModelMarkers(model, 'ibp-parser', markers);
 }
+

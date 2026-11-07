@@ -29,3 +29,4 @@ export interface AppDefinition {
   defaultWidth: number;
   defaultHeight: number;
 }
+

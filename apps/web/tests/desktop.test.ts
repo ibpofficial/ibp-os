@@ -54,3 +54,4 @@ describe('Desktop Store & Window Manager', () => {
     expect(useDesktopStore.getState().windows).toHaveLength(0);
   });
 });
+
