@@ -10,6 +10,7 @@ import {
   Moon,
   Sun,
   Compass,
+  Wand2,
 } from 'lucide-react';
 import { useDesktopStore } from '../../stores/desktopStore';
 import { AppId } from '../../types/desktop';
@@ -58,6 +59,13 @@ export const CommandPalette: React.FC = () => {
       desc: 'Code editor, runner and debugger',
       icon: <Code size={16} className="text-sky-400" />,
       run: () => openWindow('studio'),
+    },
+    {
+      id: 'langcraft',
+      title: 'LangCraft: Design Your Own Language',
+      desc: 'Create custom programming languages from scratch',
+      icon: <Wand2 size={16} className="text-purple-400" />,
+      run: () => openWindow('langcraft'),
     },
     {
       id: 'terminal',

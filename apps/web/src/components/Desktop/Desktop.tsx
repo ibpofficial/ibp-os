@@ -17,6 +17,7 @@ import {
   Clock,
   Layers,
   ChevronRight,
+  Wand2,
 } from 'lucide-react';
 import { useDesktopStore, APP_REGISTRY } from '../../stores/desktopStore';
 import { useVFSStore } from '../../stores/vfsStore';
@@ -111,6 +112,7 @@ export const Desktop: React.FC = () => {
 
   const desktopShortcuts: { appId: AppId; title: string; icon: React.ReactNode; badge?: string }[] = [
     { appId: 'studio', title: 'IBP Studio', icon: <Code size={26} className="text-sky-400" />, badge: 'IDE' },
+    { appId: 'langcraft', title: 'LangCraft', icon: <Wand2 size={26} className="text-purple-400" />, badge: 'Design Lang' },
     { appId: 'handbook', title: 'Learn IBP', icon: <BookOpen size={26} className="text-cyan-400" />, badge: 'PDF & Guide' },
     { appId: 'playground', title: 'Playground', icon: <Trophy size={26} className="text-yellow-400" />, badge: '20 Levels' },
     { appId: 'terminal', title: 'Terminal', icon: <Terminal size={26} className="text-emerald-400" />, badge: 'REPL' },
@@ -295,6 +297,16 @@ export const Desktop: React.FC = () => {
           >
             <Code size={14} className="text-sky-400" />
             <span>Open IBP Studio</span>
+          </button>
+          <button
+            onClick={() => {
+              openWindow('langcraft');
+              closeContextMenu();
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg hover:bg-purple-600/30 hover:text-purple-300 transition text-left"
+          >
+            <Wand2 size={14} className="text-purple-400" />
+            <span>LangCraft (Design Your Language)</span>
           </button>
           <button
             onClick={() => {

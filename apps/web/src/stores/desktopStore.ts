@@ -9,6 +9,7 @@ export const APP_REGISTRY: Record<AppId, { title: string; icon: string; defaultW
   handbook: { title: 'Learn IBP (Handbook & PDF)', icon: 'BookOpen', defaultWidth: 960, defaultHeight: 640 },
   playground: { title: 'Playground', icon: 'Trophy', defaultWidth: 1000, defaultHeight: 650 },
   settings: { title: 'Settings', icon: 'Settings', defaultWidth: 600, defaultHeight: 450 },
+  langcraft: { title: 'LangCraft (Language Designer)', icon: 'Wand2', defaultWidth: 980, defaultHeight: 640 },
 };
 
 interface DesktopStore {

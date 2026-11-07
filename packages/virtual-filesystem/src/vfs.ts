@@ -132,6 +132,45 @@ say "Total of doubled evens: {totalEvens}"
 `
         );
       }
+
+      const hinglishFile = 'IBP://USERS/guest/projects/hinglish_demo.ibp';
+      if (!(await this.exists(hinglishFile))) {
+        await this.writeFile(
+          hinglishFile,
+          `# Hinglish Syntax Demo
+rakho naam = "Aman"
+pakka LEVEL = 10
+bolo "Namaste {naam}!"
+
+agar LEVEL >= 10 {
+  chillao "Bahut badhiya! Aap level {LEVEL} par hain!"
+} warna {
+  dhire "Aage badhte rahiye!"
+}
+
+tareeka jodo(a, b) => a + b
+bolo "10 + 20 =", jodo(10, 20)
+jashn
+`
+        );
+      }
+
+      const physicsFile = 'IBP://USERS/guest/projects/physics_and_math.ibp';
+      if (!(await this.exists(physicsFile))) {
+        await this.writeFile(
+          physicsFile,
+          `# Physics & Mathematics
+say "Gravity (m/s^2):", GRAVITY
+say "Speed of Light:", SPEED_OF_LIGHT
+
+keep drop = freeFall(2)
+say "Fall distance after 2s:", drop.distance, "meters"
+say "Force (m=5, a=3):", force(5, 3), "Newtons"
+say "Kinetic Energy (m=2, v=10):", kineticEnergy(2, 10), "Joules"
+celebrate
+`
+        );
+      }
     }
   }
 

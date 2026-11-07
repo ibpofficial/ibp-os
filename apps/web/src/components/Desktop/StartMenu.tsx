@@ -10,6 +10,7 @@ import {
   Power,
   User,
   ExternalLink,
+  Wand2,
 } from 'lucide-react';
 import { useDesktopStore, APP_REGISTRY } from '../../stores/desktopStore';
 import { AppId } from '../../types/desktop';
@@ -71,6 +72,19 @@ export const StartMenu: React.FC = () => {
             <div>
               <div className="font-medium text-slate-200">IBP Studio</div>
               <div className="text-[10px] text-slate-400">Write, debug & run IBP programs</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleLaunch('langcraft')}
+            className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-800 transition text-left"
+          >
+            <div className="p-2 bg-purple-500/10 text-purple-400 rounded-lg">
+              <Wand2 size={16} />
+            </div>
+            <div>
+              <div className="font-medium text-slate-200">LangCraft Studio</div>
+              <div className="text-[10px] text-slate-400">Design your own programming language</div>
             </div>
           </button>
 

@@ -5,7 +5,8 @@ export type AppId =
   | 'monitor'
   | 'handbook'
   | 'settings'
-  | 'playground';
+  | 'playground'
+  | 'langcraft';
 
 export interface WindowState {
   id: string;

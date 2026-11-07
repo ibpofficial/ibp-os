@@ -1,0 +1,38 @@
+# ========================================================
+# IBP OS Hinglish Demo: Namaste Code!
+# Demonstrates Hinglish syntax aliases for intuitive coding
+# ========================================================
+
+rakho khiladi = "Aman"
+pakka LEVEL_MAX = 50
+rakho score = 100
+rakho jinda = haan
+
+bolo "Namaste {khiladi}! IBP OS mein aapka swagat hai."
+bolo "Aapka shuruaati score hai:", score
+
+# Conditionals in Hinglish
+agar score >= 100 {
+  chillao "Shabash! Aapne pehla padaav paar kar liya!"
+} warna_agar score >= 50 {
+  bolo "Achha pradarshan, aage badhte rahiye!"
+} warna {
+  dhire "Thodi aur mehnat ki zaroorat hai."
+}
+
+# Recipe / Function in Hinglish
+tareeka daud(distance_km, speed_kmh) {
+  rakho samay = distance_km / speed_kmh
+  de_do samay
+}
+
+rakho time_needed = daud(20, 10)
+bolo "20 km daudne mein samay lagega (ghante):", time_needed
+
+# Iteration in Hinglish
+dohrao 3 baar: {
+  bolo "IBP OS zindabad! 🚀"
+}
+
+# Celebration
+jashn

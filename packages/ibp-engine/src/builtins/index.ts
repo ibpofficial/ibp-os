@@ -153,6 +153,130 @@ export function registerBuiltins(env: Environment): void {
     return makeNumber(Math.pow(base, exp));
   }));
 
+  // Trigonometry
+  env.declareConst('sin', makeNativeRecipe('sin', (args) => {
+    const n = args[0]?.kind === 'number' ? args[0].value : 0;
+    return makeNumber(Math.sin(n));
+  }));
+
+  env.declareConst('cos', makeNativeRecipe('cos', (args) => {
+    const n = args[0]?.kind === 'number' ? args[0].value : 0;
+    return makeNumber(Math.cos(n));
+  }));
+
+  env.declareConst('tan', makeNativeRecipe('tan', (args) => {
+    const n = args[0]?.kind === 'number' ? args[0].value : 0;
+    return makeNumber(Math.tan(n));
+  }));
+
+  env.declareConst('degToRad', makeNativeRecipe('degToRad', (args) => {
+    const deg = args[0]?.kind === 'number' ? args[0].value : 0;
+    return makeNumber((deg * Math.PI) / 180);
+  }));
+
+  env.declareConst('radToDeg', makeNativeRecipe('radToDeg', (args) => {
+    const rad = args[0]?.kind === 'number' ? args[0].value : 0;
+    return makeNumber((rad * 180) / Math.PI);
+  }));
+
+  // Physics & Vector Mathematics
+  env.declareConst('clamp', makeNativeRecipe('clamp', (args) => {
+    const val = args[0]?.kind === 'number' ? args[0].value : 0;
+    const min = args[1]?.kind === 'number' ? args[1].value : 0;
+    const max = args[2]?.kind === 'number' ? args[2].value : 100;
+    return makeNumber(Math.max(min, Math.min(max, val)));
+  }));
+
+  env.declareConst('lerp', makeNativeRecipe('lerp', (args) => {
+    const a = args[0]?.kind === 'number' ? args[0].value : 0;
+    const b = args[1]?.kind === 'number' ? args[1].value : 0;
+    const t = args[2]?.kind === 'number' ? args[2].value : 0.5;
+    return makeNumber(a + (b - a) * t);
+  }));
+
+  env.declareConst('hypot', makeNativeRecipe('hypot', (args) => {
+    const a = args[0]?.kind === 'number' ? args[0].value : 0;
+    const b = args[1]?.kind === 'number' ? args[1].value : 0;
+    return makeNumber(Math.hypot(a, b));
+  }));
+
+  env.declareConst('distance', makeNativeRecipe('distance', (args) => {
+    // Supports distance(x1, y1, x2, y2) or distance(p1, p2)
+    if (args.length >= 4) {
+      const x1 = args[0]?.kind === 'number' ? args[0].value : 0;
+      const y1 = args[1]?.kind === 'number' ? args[1].value : 0;
+      const x2 = args[2]?.kind === 'number' ? args[2].value : 0;
+      const y2 = args[3]?.kind === 'number' ? args[3].value : 0;
+      return makeNumber(Math.hypot(x2 - x1, y2 - y1));
+    }
+    if (args.length >= 2 && args[0]?.kind === 'box' && args[1]?.kind === 'box') {
+      const p1 = args[0].fields;
+      const p2 = args[1].fields;
+      const x1 = p1.get('x')?.kind === 'number' ? (p1.get('x') as any).value : 0;
+      const y1 = p1.get('y')?.kind === 'number' ? (p1.get('y') as any).value : 0;
+      const x2 = p2.get('x')?.kind === 'number' ? (p2.get('x') as any).value : 0;
+      const y2 = p2.get('y')?.kind === 'number' ? (p2.get('y') as any).value : 0;
+      return makeNumber(Math.hypot(x2 - x1, y2 - y1));
+    }
+    return makeNumber(0);
+  }));
+
+  env.declareConst('vec2', makeNativeRecipe('vec2', (args) => {
+    const x = args[0]?.kind === 'number' ? args[0].value : 0;
+    const y = args[1]?.kind === 'number' ? args[1].value : 0;
+    const fields = new Map<string, IBPValue>();
+    fields.set('x', makeNumber(x));
+    fields.set('y', makeNumber(y));
+    return makeBox(fields);
+  }));
+
+  env.declareConst('percent', makeNativeRecipe('percent', (args) => {
+    const part = args[0]?.kind === 'number' ? args[0].value : 0;
+    const total = args[1]?.kind === 'number' ? args[1].value : 100;
+    return makeNumber(total === 0 ? 0 : (part / total) * 100);
+  }));
+
+  // Physics formulas
+  env.declareConst('force', makeNativeRecipe('force', (args) => {
+    // F = m * a
+    const m = args[0]?.kind === 'number' ? args[0].value : 0;
+    const a = args[1]?.kind === 'number' ? args[1].value : 9.8;
+    return makeNumber(m * a);
+  }));
+
+  env.declareConst('kineticEnergy', makeNativeRecipe('kineticEnergy', (args) => {
+    // KE = 0.5 * m * v^2
+    const m = args[0]?.kind === 'number' ? args[0].value : 0;
+    const v = args[1]?.kind === 'number' ? args[1].value : 0;
+    return makeNumber(0.5 * m * v * v);
+  }));
+
+  env.declareConst('potentialEnergy', makeNativeRecipe('potentialEnergy', (args) => {
+    // PE = m * g * h
+    const m = args[0]?.kind === 'number' ? args[0].value : 0;
+    const h = args[1]?.kind === 'number' ? args[1].value : 0;
+    const g = args[2]?.kind === 'number' ? args[2].value : 9.80665;
+    return makeNumber(m * g * h);
+  }));
+
+  env.declareConst('freeFall', makeNativeRecipe('freeFall', (args) => {
+    // d = 0.5 * g * t^2, v = g * t
+    const t = args[0]?.kind === 'number' ? args[0].value : 0;
+    const g = args[1]?.kind === 'number' ? args[1].value : 9.80665;
+    const distance = 0.5 * g * t * t;
+    const velocity = g * t;
+    const fields = new Map<string, IBPValue>();
+    fields.set('distance', makeNumber(distance));
+    fields.set('velocity', makeNumber(velocity));
+    return makeBox(fields);
+  }));
+
+  // Physics constants
+  env.declareConst('GRAVITY', makeNumber(9.80665));
+  env.declareConst('SPEED_OF_LIGHT', makeNumber(299792458));
+  env.declareConst('PI', makeNumber(Math.PI));
+  env.declareConst('E', makeNumber(Math.E));
+
   // --- Seeded Randomness ---
   env.declareConst('luck', makeNativeRecipe('luck', (args, ctx) => {
     const min = args[0]?.kind === 'number' ? args[0].value : 1;

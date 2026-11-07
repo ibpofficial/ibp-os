@@ -10,6 +10,7 @@ import { MonitorApp } from '../../apps/Monitor';
 import { HandbookApp } from '../../apps/Handbook';
 import { PlaygroundApp } from '../../apps/Playground';
 import { SettingsApp } from '../../apps/Settings';
+import { LangCraftApp } from '../../apps/LangCraft';
 
 interface WindowProps {
   window: WindowState;
@@ -77,6 +78,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         return <PlaygroundApp />;
       case 'settings':
         return <SettingsApp />;
+      case 'langcraft':
+        return <LangCraftApp />;
       default:
         return <div className="p-4 text-slate-400">App not found</div>;
     }

@@ -1,0 +1,36 @@
+# ========================================================
+# IBP OS Physics & Advanced Mathematics Demo
+# Demonstrates built-in kinematics, energy & coordinates
+# ========================================================
+
+say "=== IBP Physics & Mathematics Engine ==="
+
+# 1. Physics Constants
+say "Gravity (m/s^2):", GRAVITY
+say "Speed of Light (m/s):", SPEED_OF_LIGHT
+say "Pi:", PI
+
+# 2. Kinematics & Energy
+keep mass = 1500 # kg (car)
+keep velocity = 28 # m/s (~100 km/h)
+keep ke = kineticEnergy(mass, velocity)
+say "Kinetic Energy of vehicle:", ke, "Joules"
+
+# 3. Free Fall Simulation
+count t from 1 to 5 {
+  keep drop = freeFall(t)
+  say "Time:", t, "sec -> Fall distance:", round(drop.distance), "meters, Speed:", round(drop.velocity), "m/s"
+}
+
+# 4. Trigonometry & Vector Coordinates
+box p1 = vec2(0, 0)
+box p2 = vec2(30, 40)
+say "Distance between vectors:", distance(p1, p2)
+say "Cosine of 0:", round(cos(0))
+say "Sine of 90 deg:", round(sin(degToRad(90)))
+
+# 5. Smooth Interpolation (lerp) & Clamping
+say "Interpolate 0 to 100 at 75%:", lerp(0, 100, 0.75)
+say "Clamped value (150 clamped to 0..100):", clamp(150, 0, 100)
+
+celebrate

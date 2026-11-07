@@ -483,6 +483,8 @@ export class Parser {
       } while (this.match(TokenType.Comma) && !this.check(TokenType.RightParen));
     }
     this.consume(TokenType.RightParen, 'Expected ")" after parameter list');
+    this.match(TokenType.Colon);
+    this.skipTerminators();
 
     let isArrow = false;
     let body: BlockStmt | Expression;
@@ -680,6 +682,20 @@ export class Parser {
   }
 
   private parseBlock(): BlockStmt {
+    this.match(TokenType.Colon);
+    this.skipTerminators();
+
+    if (!this.check(TokenType.LeftBrace)) {
+      // Single statement block (e.g. "when x > 0: say 'yes'")
+      const start = this.peek().span.start;
+      const stmt = this.parseStatement();
+      return {
+        type: 'BlockStmt',
+        body: stmt ? [stmt] : [],
+        span: stmt ? stmt.span : { start, end: this.previous().span.end },
+      };
+    }
+
     const openBrace = this.consume(TokenType.LeftBrace, 'Expected "{" to start block');
     const body: Statement[] = [];
     this.skipTerminators();
