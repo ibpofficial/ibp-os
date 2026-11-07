@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Minus, Square, Copy, X } from 'lucide-react';
 import { WindowState } from '../../types/desktop';
-import { useDesktopStore } from '../../stores/desktopStore';
+import { useDesktopStore, APP_REGISTRY } from '../../stores/desktopStore';
 import { ErrorBoundary } from '../Common/ErrorBoundary';
 import { StudioApp } from '../../apps/Studio';
 import { TerminalApp } from '../../apps/Terminal';
@@ -29,6 +29,7 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
   const isFocused = activeWindowId === window.id;
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0, winX: 0, winY: 0 });
+  const [isHoveringControls, setIsHoveringControls] = useState(false);
 
   // Handle Dragging via Title Bar
   const handleMouseDownHeader = (e: React.MouseEvent) => {
@@ -93,7 +94,7 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         top: 0,
         left: 0,
         width: '100vw',
-        height: 'calc(100vh - 44px)',
+        height: 'calc(100vh - 60px)',
         zIndex: window.zIndex,
       }
     : {
@@ -105,54 +106,78 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         zIndex: window.zIndex,
       };
 
+  const appMeta = APP_REGISTRY[window.appId];
+
   return (
     <div
       style={style}
       onMouseDown={() => focusWindow(window.id)}
-      className={`flex flex-col bg-[#0B1120] rounded-lg shadow-2xl overflow-hidden border transition-shadow duration-150 ${
-        isFocused ? 'border-sky-500/50 shadow-sky-950/40 ring-1 ring-sky-500/20' : 'border-slate-800/80 shadow-black/60'
+      className={`flex flex-col liquid-glass-window rounded-2xl overflow-hidden transition-all duration-200 ${
+        isFocused ? 'liquid-glass-active ring-1 ring-sky-400/40' : 'opacity-95'
       }`}
     >
-      {/* Window Header */}
+      {/* Liquid Glass Window Header (macOS Traffic Lights + Centered Title) */}
       <div
         onMouseDown={handleMouseDownHeader}
         onDoubleClick={() => maximizeWindow(window.id)}
-        className={`flex items-center justify-between px-3 py-2 select-none cursor-move border-b ${
-          isFocused ? 'bg-[#131D31] border-slate-700/60 text-slate-100' : 'bg-[#0E1526] border-slate-800 text-slate-400'
+        className={`flex items-center justify-between px-3.5 py-2.5 select-none cursor-move border-b border-white/10 ${
+          isFocused
+            ? 'bg-gradient-to-r from-slate-900/90 via-slate-850/80 to-slate-900/90 text-slate-100'
+            : 'bg-slate-950/80 text-slate-400'
         }`}
       >
-        <div className="flex items-center space-x-2 truncate">
-          <span className="font-semibold text-xs truncate">{window.title}</span>
-        </div>
-
-        {/* Window action buttons */}
-        <div className="flex items-center space-x-1.5" onMouseDown={(e) => e.stopPropagation()}>
+        {/* Left: macOS Traffic Lights with subtle hover icons */}
+        <div
+          className="flex items-center space-x-2"
+          onMouseEnter={() => setIsHoveringControls(true)}
+          onMouseLeave={() => setIsHoveringControls(false)}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => closeWindow(window.id)}
+            className="mac-btn-close group"
+            title="Close"
+          >
+            {isHoveringControls && <X size={8} className="text-black/80 font-bold" />}
+          </button>
           <button
             onClick={() => minimizeWindow(window.id)}
-            className="p-1 hover:bg-slate-700/60 rounded text-slate-400 hover:text-slate-200 transition"
+            className="mac-btn-min group"
             title="Minimize"
           >
-            <Minus size={12} />
+            {isHoveringControls && <Minus size={8} className="text-black/80 font-bold" />}
           </button>
           <button
             onClick={() => maximizeWindow(window.id)}
-            className="p-1 hover:bg-slate-700/60 rounded text-slate-400 hover:text-slate-200 transition"
+            className="mac-btn-max group"
             title={window.isMaximized ? 'Restore' : 'Maximize'}
           >
-            {window.isMaximized ? <Copy size={11} /> : <Square size={11} />}
-          </button>
-          <button
-            onClick={() => closeWindow(window.id)}
-            className="p-1 hover:bg-rose-600 hover:text-white rounded text-slate-400 transition"
-            title="Close"
-          >
-            <X size={12} />
+            {isHoveringControls && (
+              window.isMaximized ? (
+                <Copy size={7} className="text-black/80" />
+              ) : (
+                <Square size={7} className="text-black/80" />
+              )
+            )}
           </button>
         </div>
+
+        {/* Center: Title with App Name */}
+        <div className="flex items-center space-x-2 truncate">
+          <span className="font-semibold text-xs tracking-wide text-slate-100 truncate">
+            {window.title}
+          </span>
+          <span className="text-[10px] text-sky-400/80 font-mono hidden sm:inline px-1.5 py-0.2 rounded bg-sky-950/40 border border-sky-500/20">
+            {appMeta?.title || 'IBP App'}
+          </span>
+        </div>
+
+        {/* Right: Spacer for symmetric balance */}
+        <div className="w-14" />
       </div>
 
       {/* App Body */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-hidden relative bg-[#0B1120]/95">
         <ErrorBoundary fallbackTitle={`Error in ${window.title}`}>
           {renderAppContent()}
         </ErrorBoundary>
@@ -160,4 +185,3 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
     </div>
   );
 };
-

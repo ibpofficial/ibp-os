@@ -11,8 +11,10 @@ body {
   padding: 0;
   overflow: hidden;
   user-select: none;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #0B1120;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #060911;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom scrollbars */
@@ -22,28 +24,185 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.4);
 }
 
 ::-webkit-scrollbar-thumb {
   background: rgba(56, 189, 248, 0.25);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.5);
 }
 
-/* Glassmorphism helpers */
+/* ============================================================
+   LIQUID GLASS & GLASSMORPHISM (inspired by vue-web-liquid-glass)
+   ============================================================ */
+
+.liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%),
+              radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 65%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass-dock {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.70) 0%, rgba(15, 23, 42, 0.85) 100%),
+              radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.14) 0%, transparent 60%);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 
+    0 20px 48px -8px rgba(0, 0, 0, 0.65),
+    0 0 24px rgba(56, 189, 248, 0.15),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.4);
+}
+
+.liquid-glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%),
+              radial-gradient(circle at 20% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.liquid-glass-window {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.94) 0%, rgba(11, 17, 32, 0.98) 100%);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 
+    0 24px 60px -12px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.25);
+}
+
+.liquid-glass-active {
+  border-color: rgba(56, 189, 248, 0.45) !important;
+  box-shadow: 
+    0 28px 70px -12px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(56, 189, 248, 0.2),
+    0 0 0 1px rgba(56, 189, 248, 0.3),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Fluid Sheen Animation */
+.sheen-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 240%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 45%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.03) 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+  transform: skewX(-25deg);
+  transition: transform 0.75s ease-out;
+}
+
+.sheen-overlay:hover::after {
+  transform: skewX(-25deg) translateX(100%);
+}
+
+/* ============================================================
+   MAC & WINDOWS HYBRID MICRO-ANIMATIONS & ICONS
+   ============================================================ */
+
+.os-icon-spring {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s ease;
+}
+
+.os-icon-spring:hover {
+  transform: translateY(-6px) scale(1.12);
+  box-shadow: 0 12px 24px -4px rgba(56, 189, 248, 0.3);
+}
+
+.os-icon-spring:active {
+  transform: translateY(0px) scale(0.96);
+}
+
+/* Traffic Light Control Buttons (macOS style with Windows polish) */
+.mac-btn-close {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #FF5F56;
+  border: 1px solid #E0443E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.mac-btn-close:hover {
+  background: #E0443E;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+.mac-btn-min {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #FFBD2E;
+  border: 1px solid #DEA123;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.mac-btn-min:hover {
+  background: #DEA123;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+.mac-btn-max {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #27C93F;
+  border: 1px solid #1AAB29;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.mac-btn-max:hover {
+  background: #1AAB29;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+/* Legacy helpers for backwards compatibility */
 .glass-panel {
   background: rgba(17, 24, 39, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
 }
 
 .glass-toolbar {
-  background: rgba(11, 17, 32, 0.8);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(11, 17, 32, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-

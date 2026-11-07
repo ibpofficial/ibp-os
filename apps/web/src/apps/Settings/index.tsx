@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Moon, Sun, RotateCcw, Compass, Database, Palette, Image as ImageIcon, Check } from 'lucide-react';
+import { Settings as SettingsIcon, Moon, Sun, RotateCcw, Compass, Database, Palette, Image as ImageIcon, Check, Download } from 'lucide-react';
 import { useDesktopStore } from '../../stores/desktopStore';
 import { defaultVFS } from '@ibp/vfs';
 import { useVFSStore } from '../../stores/vfsStore';
 import { WALLPAPER_PRESETS, WallpaperPresetKey } from '../../components/Desktop/Desktop';
+import { downloadOfflineBundle } from '../../utils/offlineDownloader';
 
 export const SettingsApp: React.FC = () => {
   const { theme, toggleTheme, setOnboardingStep } = useDesktopStore();
@@ -102,6 +103,28 @@ export const SettingsApp: React.FC = () => {
               )}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Offline Download Section */}
+      <div className="p-4 bg-gradient-to-r from-emerald-950/40 to-teal-950/40 border border-emerald-500/30 rounded-xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-emerald-300 font-semibold flex items-center space-x-1.5">
+              <Download size={15} />
+              <span>Standalone Offline OS Package</span>
+            </div>
+            <div className="text-slate-400 text-[11px] mt-0.5">
+              Download complete standalone distribution (ZIP) with double-click desktop launchers
+            </div>
+          </div>
+          <button
+            onClick={() => downloadOfflineBundle()}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold shadow transition"
+          >
+            <Download size={14} />
+            <span>Download ZIP</span>
+          </button>
         </div>
       </div>
 

@@ -27,6 +27,7 @@ import {
   StickyNote,
   Copy,
   Trash2,
+  Download,
 } from 'lucide-react';
 import { useDesktopStore, APP_REGISTRY } from '../../stores/desktopStore';
 import { useVFSStore } from '../../stores/vfsStore';
@@ -38,6 +39,7 @@ import { CommandPalette } from './CommandPalette';
 import { OnboardingTour } from './OnboardingTour';
 import { AppId } from '../../types/desktop';
 import { IBP_TIPS } from '@ibp/engine';
+import { downloadOfflineBundle } from '../../utils/offlineDownloader';
 
 export type WallpaperPresetKey =
   | 'deep-space'
@@ -229,15 +231,15 @@ export const Desktop: React.FC = () => {
     }
   }, [isBooted]);
 
-  const desktopShortcuts: { appId: AppId; title: string; icon: React.ReactNode; badge?: string }[] = [
-    { appId: 'studio', title: 'IBP Studio', icon: <Code size={26} className="text-sky-400" />, badge: 'IDE' },
-    { appId: 'langcraft', title: 'LangCraft', icon: <Wand2 size={26} className="text-purple-400" />, badge: 'Design Lang' },
-    { appId: 'handbook', title: 'Learn IBP', icon: <BookOpen size={26} className="text-cyan-400" />, badge: 'PDF & Guide' },
-    { appId: 'playground', title: 'Playground', icon: <Trophy size={26} className="text-yellow-400" />, badge: '20 Levels' },
-    { appId: 'terminal', title: 'Terminal', icon: <Terminal size={26} className="text-emerald-400" />, badge: 'REPL' },
-    { appId: 'explorer', title: 'File Explorer', icon: <Folder size={26} className="text-amber-400" /> },
-    { appId: 'monitor', title: 'System Monitor', icon: <Activity size={26} className="text-indigo-400" /> },
-    { appId: 'settings', title: 'Settings', icon: <Settings size={26} className="text-slate-400" /> },
+  const desktopShortcuts: { appId: AppId; title: string; icon: React.ReactNode; bg: string; badge?: string }[] = [
+    { appId: 'studio', title: 'IBP Studio', icon: <Code size={22} className="text-white drop-shadow" />, bg: 'from-blue-600 via-sky-500 to-cyan-400', badge: 'IDE' },
+    { appId: 'langcraft', title: 'LangCraft', icon: <Wand2 size={22} className="text-white drop-shadow" />, bg: 'from-purple-600 via-pink-500 to-rose-400', badge: 'Design Lang' },
+    { appId: 'handbook', title: 'Learn IBP', icon: <BookOpen size={22} className="text-white drop-shadow" />, bg: 'from-cyan-600 via-teal-500 to-emerald-400', badge: 'PDF & Guide' },
+    { appId: 'playground', title: 'Playground', icon: <Trophy size={22} className="text-white drop-shadow" />, bg: 'from-amber-600 via-orange-500 to-yellow-400', badge: '20 Levels' },
+    { appId: 'terminal', title: 'Terminal', icon: <Terminal size={22} className="text-white drop-shadow" />, bg: 'from-emerald-700 via-teal-600 to-cyan-500', badge: 'REPL' },
+    { appId: 'explorer', title: 'File Explorer', icon: <Folder size={22} className="text-white drop-shadow" />, bg: 'from-amber-700 via-amber-600 to-orange-500' },
+    { appId: 'monitor', title: 'System Monitor', icon: <Activity size={22} className="text-white drop-shadow" />, bg: 'from-indigo-700 via-purple-600 to-pink-500' },
+    { appId: 'settings', title: 'Settings', icon: <Settings size={22} className="text-white drop-shadow" />, bg: 'from-slate-700 via-slate-600 to-slate-500' },
   ];
 
   const handleNextTip = () => {
@@ -385,21 +387,22 @@ export const Desktop: React.FC = () => {
       <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-t from-[#060911]/90 via-transparent to-[#060911]/50" />
 
       {/* 1. Desktop Shortcuts Grid (Left Side) */}
-      <div className="absolute inset-0 p-5 grid grid-flow-col grid-rows-6 gap-3 auto-cols-max z-10 pointer-events-none">
+      <div className="absolute inset-0 p-6 grid grid-flow-col grid-rows-6 gap-3 auto-cols-max z-10 pointer-events-none pb-20">
         {desktopShortcuts.map((sc) => (
           <button
             key={sc.appId}
             onClick={() => openWindow(sc.appId)}
-            className="flex flex-col items-center justify-center w-24 h-24 rounded-2xl p-2 hover:bg-slate-800/40 border border-transparent hover:border-slate-700/60 hover:shadow-xl hover:backdrop-blur-md transition duration-150 group pointer-events-auto relative text-center"
+            className="flex flex-col items-center justify-center w-24 h-24 rounded-2xl p-2 hover:bg-white/5 border border-transparent hover:border-white/10 hover:shadow-2xl hover:backdrop-blur-md transition duration-200 group pointer-events-auto relative text-center"
           >
-            <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-lg group-hover:scale-110 group-hover:border-sky-500/50 transition-transform duration-150">
+            <div className={`p-3 rounded-2xl bg-gradient-to-br ${sc.bg} shadow-lg shadow-black/40 os-icon-spring border border-white/20 relative overflow-hidden`}>
+              <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl pointer-events-none" />
               {sc.icon}
             </div>
-            <span className="text-[11px] font-semibold text-slate-100 mt-2 drop-shadow truncate w-full tracking-wide">
+            <span className="text-[11px] font-semibold text-slate-100 mt-2 drop-shadow-md truncate w-full tracking-wide">
               {sc.title}
             </span>
             {sc.badge && (
-              <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-sky-500/25 text-sky-300 border border-sky-400/30">
+              <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-sky-500/30 text-sky-200 border border-sky-400/40 backdrop-blur-md shadow-sm">
                 {sc.badge}
               </span>
             )}
@@ -409,19 +412,19 @@ export const Desktop: React.FC = () => {
 
       {/* 2. Interactive Desktop Background Widgets (Right Side) */}
       <div
-        className={`absolute top-6 right-6 max-w-sm w-full space-y-4 z-10 pointer-events-none transition-opacity duration-300 ${
+        className={`absolute top-6 right-6 max-w-sm w-full space-y-4 z-10 pointer-events-none transition-opacity duration-300 pb-20 ${
           hasVisibleWindows ? 'opacity-25 hover:opacity-100 pointer-events-auto' : 'opacity-100 pointer-events-auto'
         }`}
       >
         {/* Widget 1: Digital Clock & Date */}
-        <div className="glass-panel p-5 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl">
+        <div className="liquid-glass-card sheen-overlay p-5 rounded-3xl shadow-2xl backdrop-blur-2xl">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span className="flex items-center space-x-1.5 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>IBP OS 🪐 READY</span>
+              <span>IBP OS 🪐 LIQUID MICA</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-slate-800/80 text-[10px] text-sky-300 font-mono">
-              v0.1.0
+            <span className="px-2 py-0.5 rounded-full bg-sky-950/60 text-[10px] text-sky-300 font-mono border border-sky-500/30">
+              v0.1.0 Offline Ready
             </span>
           </div>
 
@@ -433,33 +436,34 @@ export const Desktop: React.FC = () => {
           </div>
 
           {/* Quick Action Buttons on Desktop */}
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-1.5">
             <button
               onClick={() => setIsWallpaperModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/30 text-[11px] font-semibold transition"
+              className="flex-1 flex items-center justify-center space-x-1 px-2.5 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/30 text-[11px] font-semibold transition"
             >
               <Palette size={13} />
               <span>Wallpaper</span>
             </button>
             <button
               onClick={() => openWindow('langcraft')}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-sky-600/30 hover:bg-sky-600/50 text-sky-200 border border-sky-500/30 text-[11px] font-semibold transition"
+              className="flex-1 flex items-center justify-center space-x-1 px-2.5 py-1.5 rounded-xl bg-sky-600/30 hover:bg-sky-600/50 text-sky-200 border border-sky-500/30 text-[11px] font-semibold transition"
             >
               <Wand2 size={13} />
               <span>LangCraft</span>
             </button>
             <button
-              onClick={handleQuickNewFile}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 border border-emerald-500/30 text-[11px] font-semibold transition"
+              onClick={() => downloadOfflineBundle()}
+              className="flex-1 flex items-center justify-center space-x-1 px-2.5 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-200 border border-emerald-500/30 text-[11px] font-semibold transition"
+              title="Download Offline Edition (ZIP)"
             >
-              <Play size={12} fill="currentColor" />
-              <span>New Code</span>
+              <Download size={13} />
+              <span>Offline</span>
             </button>
           </div>
         </div>
 
         {/* Widget 2: Desktop Scratchpad / Sticky Notes */}
-        <div className="glass-panel p-4 rounded-2xl shadow-xl border border-slate-700/40 backdrop-blur-xl space-y-2">
+        <div className="liquid-glass-card sheen-overlay p-4 rounded-3xl shadow-xl backdrop-blur-2xl space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-400">
               <StickyNote size={14} />
@@ -468,14 +472,14 @@ export const Desktop: React.FC = () => {
             <div className="flex items-center space-x-1">
               <button
                 onClick={handleCopyNotes}
-                className="p-1 text-slate-400 hover:text-sky-300 hover:bg-slate-800 rounded transition"
+                className="p-1 text-slate-400 hover:text-sky-300 hover:bg-slate-800 rounded-lg transition"
                 title="Copy Notes"
               >
                 {notesCopied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
               </button>
               <button
                 onClick={() => handleSaveNotes('')}
-                className="p-1 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded transition"
+                className="p-1 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition"
                 title="Clear Notes"
               >
                 <Trash2 size={12} />
@@ -487,13 +491,13 @@ export const Desktop: React.FC = () => {
             onChange={(e) => handleSaveNotes(e.target.value)}
             rows={3}
             spellCheck={false}
-            className="w-full bg-slate-950/60 border border-slate-800/80 rounded-xl p-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500/50 resize-none leading-relaxed"
+            className="w-full bg-slate-950/60 border border-slate-800/80 rounded-2xl p-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500/50 resize-none leading-relaxed"
             placeholder="Type quick thoughts, code ideas, or to-dos..."
           />
         </div>
 
         {/* Widget 3: Language Tip of the Day */}
-        <div className="glass-panel p-4 rounded-2xl shadow-xl border border-slate-700/40 backdrop-blur-xl space-y-2.5">
+        <div className="liquid-glass-card sheen-overlay p-4 rounded-3xl shadow-xl backdrop-blur-2xl space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1.5 text-xs font-bold text-sky-400">
               <Sparkles size={14} />
@@ -527,7 +531,7 @@ export const Desktop: React.FC = () => {
         <div
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
-          className="fixed z-50 w-56 bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl p-1.5 backdrop-blur-xl text-xs text-slate-200 select-none animate-in fade-in zoom-in-95 duration-100"
+          className="fixed z-50 w-60 liquid-glass rounded-2xl shadow-2xl p-2 backdrop-blur-2xl text-xs text-slate-200 select-none animate-in fade-in zoom-in-95 duration-100"
         >
           <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800 mb-1">
             IBP OS Workspace
@@ -587,6 +591,16 @@ export const Desktop: React.FC = () => {
 
           <button
             onClick={() => {
+              downloadOfflineBundle();
+              closeContextMenu();
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-emerald-600/30 hover:text-emerald-300 transition text-left"
+          >
+            <Download size={14} className="text-emerald-400" />
+            <span>Download Offline OS (ZIP)</span>
+          </button>
+          <button
+            onClick={() => {
               setIsWallpaperModalOpen(true);
               closeContextMenu();
             }}
@@ -615,7 +629,7 @@ export const Desktop: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#0E1526] border border-slate-700/80 rounded-2xl shadow-2xl max-w-xl w-full p-6 text-slate-100 space-y-5 animate-in fade-in zoom-in-95 duration-150"
+            className="liquid-glass rounded-3xl shadow-2xl max-w-xl w-full p-6 text-slate-100 space-y-5 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-2xl"
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-2.5">

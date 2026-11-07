@@ -1,0 +1,17 @@
+{
+  "name": "IBP OS - Educational Programming Language & Virtual Desktop",
+  "short_name": "IBP OS",
+  "description": "Full-stack educational operating system and programming language in your browser",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060911",
+  "theme_color": "#0E1526",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+

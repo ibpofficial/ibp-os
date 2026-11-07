@@ -11,9 +11,11 @@ import {
   Sun,
   Compass,
   Wand2,
+  Download,
 } from 'lucide-react';
 import { useDesktopStore } from '../../stores/desktopStore';
 import { AppId } from '../../types/desktop';
+import { downloadOfflineBundle } from '../../utils/offlineDownloader';
 
 export const CommandPalette: React.FC = () => {
   const {
@@ -103,6 +105,13 @@ export const CommandPalette: React.FC = () => {
       run: () => openWindow('monitor'),
     },
     {
+      id: 'offline',
+      title: 'Download Offline OS (ZIP)',
+      desc: 'Package and download offline bundle with double-click launchers',
+      icon: <Download size={16} className="text-emerald-400" />,
+      run: () => downloadOfflineBundle(),
+    },
+    {
       id: 'tour',
       title: 'Start 60s Guided Tour',
       desc: 'Take an interactive tour of IBP OS',
@@ -152,7 +161,7 @@ export const CommandPalette: React.FC = () => {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-[#0E1526] border border-slate-700 rounded-xl shadow-2xl overflow-hidden font-sans text-xs text-slate-100"
+        className="w-full max-w-lg liquid-glass rounded-3xl shadow-2xl overflow-hidden font-sans text-xs text-slate-100 backdrop-blur-2xl"
       >
         <div className="flex items-center px-3.5 py-3 border-b border-slate-800 space-x-2.5">
           <Search size={16} className="text-slate-400 shrink-0" />

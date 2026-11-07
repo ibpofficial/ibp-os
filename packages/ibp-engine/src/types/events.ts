@@ -14,6 +14,7 @@ export type EngineEvent =
   | { type: 'celebrate'; timestamp: number }
   | { type: 'todo'; text: string; span: SourceSpan }
   | { type: 'waiting'; durationSeconds: number }
+  | { type: 'draw'; command: string; args: Record<string, any> }
   | { type: 'completed'; totalInstructions: number; durationMs: number };
 
 export type EventHandler = (event: EngineEvent) => void;
