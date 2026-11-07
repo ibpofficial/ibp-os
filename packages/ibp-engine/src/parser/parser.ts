@@ -133,7 +133,7 @@ export class Parser {
 
   private skipTerminators(): void {
     while (this.match(TokenType.Newline, TokenType.Semicolon)) {
-      // consume
+      // consume newlines and semicolons
     }
   }
 
@@ -174,6 +174,10 @@ export class Parser {
 
     this.skipTerminators();
     while (!this.isAtEnd()) {
+      if (this.match(TokenType.Comma)) {
+        this.skipTerminators();
+        continue;
+      }
       try {
         const stmt = this.parseStatement();
         if (stmt) {
@@ -196,6 +200,9 @@ export class Parser {
         }
       }
       this.skipTerminators();
+      while (this.match(TokenType.Comma)) {
+        this.skipTerminators();
+      }
     }
 
     const endLoc = this.peek().span.end;
@@ -291,12 +298,25 @@ export class Parser {
 
   private parseOutput(mode: 'say' | 'shout' | 'whisper'): OutputStmt {
     const start = this.previous().span.start;
-    const value = this.parseExpression();
+    const values: Expression[] = [this.parseExpression()];
+    while (this.match(TokenType.Comma)) {
+      if (
+        this.check(TokenType.Newline) ||
+        this.check(TokenType.Semicolon) ||
+        this.check(TokenType.RightBrace) ||
+        this.isAtEnd()
+      ) {
+        break; // trailing comma
+      }
+      values.push(this.parseExpression());
+    }
+    const end = values[values.length - 1].span.end;
     return {
       type: 'OutputStmt',
       mode,
-      value,
-      span: { start, end: value.span.end },
+      value: values[0],
+      values,
+      span: { start, end },
     };
   }
 
@@ -451,13 +471,16 @@ export class Parser {
     const params: RecipeParam[] = [];
     if (!this.check(TokenType.RightParen)) {
       do {
+        this.skipTerminators();
+        if (this.check(TokenType.RightParen)) break;
         const paramName = this.consumeIdentifierName('Expected parameter name').value;
         let defaultValue: Expression | undefined;
         if (this.match(TokenType.Assign)) {
           defaultValue = this.parseExpression();
         }
         params.push({ name: paramName, defaultValue });
-      } while (this.match(TokenType.Comma));
+        this.skipTerminators();
+      } while (this.match(TokenType.Comma) && !this.check(TokenType.RightParen));
     }
     this.consume(TokenType.RightParen, 'Expected ")" after parameter list');
 
@@ -662,6 +685,10 @@ export class Parser {
     this.skipTerminators();
 
     while (!this.check(TokenType.RightBrace) && !this.isAtEnd()) {
+      if (this.match(TokenType.Comma)) {
+        this.skipTerminators();
+        continue;
+      }
       try {
         const stmt = this.parseStatement();
         if (stmt) body.push(stmt);
@@ -681,6 +708,9 @@ export class Parser {
         }
       }
       this.skipTerminators();
+      while (this.match(TokenType.Comma)) {
+        this.skipTerminators();
+      }
     }
 
     const closeBrace = this.consume(TokenType.RightBrace, 'Expected "}" to close block');
@@ -947,8 +977,11 @@ export class Parser {
         const args: Expression[] = [];
         if (!this.check(TokenType.RightParen)) {
           do {
+            this.skipTerminators();
+            if (this.check(TokenType.RightParen)) break;
             args.push(this.parseExpression());
-          } while (this.match(TokenType.Comma));
+            this.skipTerminators();
+          } while (this.match(TokenType.Comma) && !this.check(TokenType.RightParen));
         }
         const rightParen = this.consume(TokenType.RightParen, 'Expected ")" after argument list');
         expr = {
@@ -1047,7 +1080,7 @@ export class Parser {
           if (this.check(TokenType.RightBracket)) break;
           elements.push(this.parseExpression());
           this.skipTerminators();
-        } while (this.match(TokenType.Comma));
+        } while (this.match(TokenType.Comma) && !this.check(TokenType.RightBracket));
       }
       this.skipTerminators();
       const end = this.consume(TokenType.RightBracket, 'Expected "]" to close list').span.end;

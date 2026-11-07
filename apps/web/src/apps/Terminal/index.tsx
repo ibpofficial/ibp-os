@@ -48,28 +48,36 @@ export const TerminalApp: React.FC = () => {
           return;
         }
 
-        const { program, errors } = parse(line);
-        if (errors.length > 0) {
-          setHistory((prev) => [...prev, { type: 'error', text: errors[0].format(line) }]);
-        } else {
-          const { output, error } = executeIBP(line, {
-            onEvent: (ev) => {
-              if (ev.type === 'celebrate') {
-                confetti({ particleCount: 60, spread: 50 });
-              }
-            },
-          });
-          output.forEach((out) => {
-            setHistory((prev) => [...prev, { type: 'output', text: out }]);
-          });
-          if (error) {
-            setHistory((prev) => [...prev, { type: 'error', text: error.format(line) }]);
+        try {
+          const { errors } = parse(line);
+          if (errors.length > 0) {
+            setHistory((prev) => [...prev, { type: 'error', text: errors[0].format(line) }]);
+          } else {
+            const { output, error } = executeIBP(line, {
+              onEvent: (ev) => {
+                if (ev.type === 'celebrate') {
+                  confetti({ particleCount: 60, spread: 50 });
+                }
+              },
+            });
+            output.forEach((out) => {
+              setHistory((prev) => [...prev, { type: 'output', text: out }]);
+            });
+            if (error) {
+              setHistory((prev) => [...prev, { type: 'error', text: error.format(line) }]);
+            }
           }
+        } catch (err: any) {
+          setHistory((prev) => [...prev, { type: 'error', text: `REPL Error: ${err.message || err}` }]);
         }
         return;
       }
 
-      await executeTerminalCommand(line);
+      try {
+        await executeTerminalCommand(line);
+      } catch (err: any) {
+        setHistory((prev) => [...prev, { type: 'error', text: `Command error: ${err.message || err}` }]);
+      }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (cmdHistory.length === 0) return;

@@ -59,6 +59,24 @@ export const IBP_KEYWORDS = [
   'true',
   'false',
   'empty',
+  'null',
+  'nil',
+  'none',
+  // Friendly aliases
+  'print',
+  'let',
+  'var',
+  'const',
+  'if',
+  'elif',
+  'else',
+  'fun',
+  'fn',
+  'function',
+  'return',
+  'break',
+  'continue',
+  'for',
 ];
 
 export const IBP_BUILTINS = [
@@ -118,8 +136,15 @@ export const IBP_BUILTINS = [
   'exists',
   'listFolder',
   'deleteFile',
-  // Delight
+  // Delight & Easter Eggs
   'tip',
+  'magic8Ball',
+  'rollDice',
+  'd20',
+  'joke',
+  'asciiArt',
+  'confetti',
+  'badge',
 ];
 
 export const monarchLanguageDefinition = {

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Minus, Square, Copy, X } from 'lucide-react';
 import { WindowState } from '../../types/desktop';
 import { useDesktopStore } from '../../stores/desktopStore';
+import { ErrorBoundary } from '../Common/ErrorBoundary';
 import { StudioApp } from '../../apps/Studio';
 import { TerminalApp } from '../../apps/Terminal';
 import { ExplorerApp } from '../../apps/Explorer';
@@ -148,7 +149,11 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
       </div>
 
       {/* App Body */}
-      <div className="flex-1 overflow-hidden relative">{renderAppContent()}</div>
+      <div className="flex-1 overflow-hidden relative">
+        <ErrorBoundary fallbackTitle={`Error in ${window.title}`}>
+          {renderAppContent()}
+        </ErrorBoundary>
+      </div>
     </div>
   );
 };

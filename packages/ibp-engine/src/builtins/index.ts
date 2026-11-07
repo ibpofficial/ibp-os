@@ -364,5 +364,114 @@ export function registerBuiltins(env: Environment): void {
     const tipIndex = ctx.prng.luck(0, IBP_TIPS.length - 1);
     return makeText(IBP_TIPS[tipIndex] || IBP_TIPS[0]);
   }));
+
+  // --- Fun & Educational Easter Eggs ---
+  const MAGIC_ANSWERS = [
+    'It is certain! ✨',
+    'Without a doubt. 🚀',
+    'You may rely on it. 🔮',
+    'Yes, definitely! 🌟',
+    'Ask again later... ⏳',
+    'Better not tell you now! 🤫',
+    'Cannot predict now. 🌀',
+    'Concentrate and ask again. 🧘',
+    'Don\'t count on it. 🛑',
+    'My reply is no. ❌',
+    'My sources say no. 📉',
+    'Outlook not so good. ⛈️',
+    'Very doubtful. 🤔',
+    'Signs point to yes! 🪐',
+  ];
+
+  env.declareConst('magic8Ball', makeNativeRecipe('magic8Ball', (_args, ctx) => {
+    const idx = ctx.prng.luck(0, MAGIC_ANSWERS.length - 1);
+    return makeText(MAGIC_ANSWERS[idx]);
+  }));
+
+  env.declareConst('rollDice', makeNativeRecipe('rollDice', (args, ctx) => {
+    const sides = args[0] && args[0].kind === 'number' ? Math.max(2, Math.floor(args[0].value)) : 6;
+    return makeNumber(ctx.prng.luck(1, sides));
+  }));
+
+  env.declareConst('d20', makeNativeRecipe('d20', (_args, ctx) => {
+    const roll = ctx.prng.luck(1, 20);
+    if (roll === 20) return makeText('🎲 20! CRITICAL SUCCESS! 🌟');
+    if (roll === 1) return makeText('🎲 1... Critical failure! 💥');
+    return makeText(`🎲 Rolled ${roll}`);
+  }));
+
+  const JOKES = [
+    'Why do programmers prefer dark mode? Because light attracts bugs! 🐛',
+    'There are only 10 kinds of people: those who understand binary, and those who don\'t.',
+    'Why did the IBP programmer cross the road? To "give" to the other side! 🛣️',
+    'A SQL query walks into a bar, walks up to two tables and asks: "Can I join you?" 🍻',
+    'Why do recipe functions love coffee? Because they run in Java-free environments! ☕',
+    'Hardware is what you can kick; software is what you can only curse at.',
+    'There\'s no place like 127.0.0.1 🏡',
+  ];
+
+  env.declareConst('joke', makeNativeRecipe('joke', (_args, ctx) => {
+    const idx = ctx.prng.luck(0, JOKES.length - 1);
+    return makeText(JOKES[idx]);
+  }));
+
+  const ASCII_ART: Record<string, string> = {
+    rocket: `
+   /\\
+  /  \\
+ | IBP |
+ |     |
+/|  *  |\\
+/_/   \\_\\
+  /   \\
+`,
+    cat: `
+ /\\_/\\  
+( o.o ) 
+ > ^ <  Meow from IBP!
+`,
+    dog: `
+ / \\__
+(    @\\___
+ /         O
+/   (_____/
+/_____/   U
+`,
+    planet: `
+    .----.
+   /  🪐  \\
+  |  IBP   |
+   \\  OS  /
+    '----'
+`,
+    heart: `
+ <3 <3 <3
+(  Love  )
+ \\ IBP  /
+  \\    /
+   \\  /
+    \\/
+`,
+    star: `
+   ★
+ ★ ★ ★
+   ★
+`,
+  };
+
+  env.declareConst('asciiArt', makeNativeRecipe('asciiArt', (args) => {
+    const name = args[0] ? valueToString(args[0]).toLowerCase() : 'rocket';
+    return makeText(ASCII_ART[name] || ASCII_ART.rocket);
+  }));
+
+  env.declareConst('confetti', makeNativeRecipe('confetti', (_args) => {
+    return makeText('🎉 Confetti launched!');
+  }));
+
+  env.declareConst('badge', makeNativeRecipe('badge', (args) => {
+    const label = args[0] ? valueToString(args[0]) : 'IBP';
+    const icon = args[1] ? valueToString(args[1]) : '🪐';
+    return makeText(`[ ${icon} ${label} ]`);
+  }));
 }
 

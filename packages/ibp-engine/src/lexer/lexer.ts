@@ -57,6 +57,25 @@ const KEYWORDS: Record<string, TokenType> = {
   true: TokenType.Boolean,
   false: TokenType.Boolean,
   empty: TokenType.Empty,
+  null: TokenType.Empty,
+  nil: TokenType.Empty,
+  none: TokenType.Empty,
+
+  // Friendly aliases for effortless coding
+  print: TokenType.Say,
+  let: TokenType.Keep,
+  var: TokenType.Keep,
+  const: TokenType.Lock,
+  if: TokenType.When,
+  elif: TokenType.OrWhen,
+  else: TokenType.Otherwise,
+  fun: TokenType.Recipe,
+  fn: TokenType.Recipe,
+  function: TokenType.Recipe,
+  return: TokenType.Give,
+  break: TokenType.Stop,
+  continue: TokenType.Skip,
+  for: TokenType.Each,
 };
 
 export class Lexer {

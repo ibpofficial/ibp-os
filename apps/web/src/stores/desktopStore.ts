@@ -6,7 +6,7 @@ export const APP_REGISTRY: Record<AppId, { title: string; icon: string; defaultW
   terminal: { title: 'Terminal', icon: 'Terminal', defaultWidth: 720, defaultHeight: 460 },
   explorer: { title: 'File Explorer', icon: 'Folder', defaultWidth: 800, defaultHeight: 520 },
   monitor: { title: 'System Monitor', icon: 'Activity', defaultWidth: 640, defaultHeight: 440 },
-  handbook: { title: 'IBP Handbook', icon: 'BookOpen', defaultWidth: 880, defaultHeight: 600 },
+  handbook: { title: 'Learn IBP (Handbook & PDF)', icon: 'BookOpen', defaultWidth: 960, defaultHeight: 640 },
   playground: { title: 'Playground', icon: 'Trophy', defaultWidth: 1000, defaultHeight: 650 },
   settings: { title: 'Settings', icon: 'Settings', defaultWidth: 600, defaultHeight: 450 },
 };

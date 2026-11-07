@@ -391,8 +391,9 @@ export class Interpreter {
         return;
       }
       case 'OutputStmt': {
-        const val = this.evalExpression(stmt.value);
-        let text = valueToString(val);
+        const expressions = stmt.values && stmt.values.length > 0 ? stmt.values : [stmt.value];
+        const pieces = expressions.map((e) => valueToString(this.evalExpression(e)));
+        let text = pieces.join(' ');
         if (stmt.mode === 'shout') text = text.toUpperCase();
         else if (stmt.mode === 'whisper') text = text.toLowerCase();
 

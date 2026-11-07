@@ -186,27 +186,32 @@ export function configureMonaco(monaco: Monaco): void {
 }
 
 export function updateEditorMarkers(monaco: Monaco, model: any, code: string): void {
-  const { errors } = parse(code);
-  const markers = errors.map((err) => {
-    const line = err.span ? err.span.start.line : 1;
-    const col = err.span ? err.span.start.column : 1;
-    const endLine = err.span ? err.span.end.line : line;
-    const endCol = err.span ? Math.max(col + 1, err.span.end.column) : col + 4;
+  try {
+    const { errors } = parse(code);
+    const markers = errors.map((err) => {
+      const line = err.span ? err.span.start.line : 1;
+      const col = err.span ? err.span.start.column : 1;
+      const endLine = err.span ? err.span.end.line : line;
+      const endCol = err.span ? Math.max(col + 1, err.span.end.column) : col + 4;
 
-    let msg = `${err.kind}: ${err.message}`;
-    if (err.suggestion) msg += ` (Did you mean "${err.suggestion}"?)`;
-    if (err.hint) msg += ` - Try this: ${err.hint}`;
+      let msg = `${err.kind}: ${err.message}`;
+      if (err.suggestion) msg += ` (Did you mean "${err.suggestion}"?)`;
+      if (err.hint) msg += ` - Try this: ${err.hint}`;
 
-    return {
-      severity: monaco.MarkerSeverity.Error,
-      message: msg,
-      startLineNumber: line,
-      startColumn: col,
-      endLineNumber: endLine,
-      endColumn: endCol,
-    };
-  });
+      return {
+        severity: monaco.MarkerSeverity.Error,
+        message: msg,
+        startLineNumber: line,
+        startColumn: col,
+        endLineNumber: endLine,
+        endColumn: endCol,
+      };
+    });
 
-  monaco.editor.setModelMarkers(model, 'ibp-parser', markers);
+    monaco.editor.setModelMarkers(model, 'ibp-parser', markers);
+  } catch (e) {
+    // Graceful recovery: clear markers on unexpected exception
+    monaco.editor.setModelMarkers(model, 'ibp-parser', []);
+  }
 }
 

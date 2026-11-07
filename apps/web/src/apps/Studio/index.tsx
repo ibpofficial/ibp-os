@@ -104,11 +104,26 @@ export const StudioApp: React.FC = () => {
           setTestResults((prev) => [...prev, { label: ev.label, passed: false, message: ev.message }]);
         }
         if (ev.type === 'variable-changed') {
+          let strVal = '';
+          try {
+            if (ev.newValue === null || ev.newValue === undefined) strVal = 'empty';
+            else if (typeof ev.newValue === 'object') {
+              if ('value' in ev.newValue) strVal = String(ev.newValue.value);
+              else if (ev.newValue.kind === 'recipe') strVal = `<recipe ${ev.newValue.name || 'fn'}>`;
+              else if (ev.newValue.kind === 'list') strVal = `[ ${(ev.newValue.elements || []).map((x: any) => x?.value ?? x?.kind).join(', ')} ]`;
+              else if (ev.newValue.kind === 'box') strVal = `{ ${Array.from(ev.newValue.fields?.keys() || []).join(', ')} }`;
+              else strVal = JSON.stringify(ev.newValue);
+            } else {
+              strVal = String(ev.newValue);
+            }
+          } catch {
+            strVal = '[Complex Value]';
+          }
           setLiveVariables((prev) => ({
             ...prev,
             [ev.name]: {
-              kind: ev.newValue.kind,
-              value: JSON.stringify((ev.newValue as any).value ?? ev.newValue),
+              kind: ev.newValue?.kind || typeof ev.newValue,
+              value: strVal,
             },
           }));
         }
@@ -135,8 +150,12 @@ export const StudioApp: React.FC = () => {
 
   const handleFormat = () => {
     if (!activeTab) return;
-    const formatted = formatIBP(activeTab.content);
-    updateTabContent(activeTab.path, formatted);
+    try {
+      const formatted = formatIBP(activeTab.content);
+      updateTabContent(activeTab.path, formatted);
+    } catch {
+      // gracefully ignore formatting errors when user is typing invalid syntax
+    }
   };
 
   const handleCreateNewFile = async () => {

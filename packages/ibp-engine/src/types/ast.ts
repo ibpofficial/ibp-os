@@ -71,6 +71,7 @@ export interface OutputStmt extends BaseNode {
   type: 'OutputStmt';
   mode: 'say' | 'shout' | 'whisper';
   value: Expression;
+  values?: Expression[];
 }
 
 export interface InputStmt extends BaseNode {
