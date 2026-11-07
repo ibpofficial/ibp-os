@@ -1,2 +1,1 @@
-export * from '@ibp/engine';
-
+export * from './vm-controller';

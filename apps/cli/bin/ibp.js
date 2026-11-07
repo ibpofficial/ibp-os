@@ -1,3 +1,6 @@
 #!/usr/bin/env node
-console.log("IBP CLI v0.1.0");
-
+const { runCLI } = require('../dist/cli.js');
+runCLI(process.argv.slice(2)).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
