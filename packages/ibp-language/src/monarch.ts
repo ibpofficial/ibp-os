@@ -1,0 +1,220 @@
+/**
+ * Monarch syntax definition for IBP language in Monaco Editor
+ */
+
+export const IBP_LANGUAGE_ID = 'ibp';
+
+export const IBP_KEYWORDS = [
+  'keep',
+  'lock',
+  'say',
+  'shout',
+  'whisper',
+  'ask',
+  'into',
+  'when',
+  'orwhen',
+  'otherwise',
+  'unless',
+  'repeat',
+  'times',
+  'time',
+  'count',
+  'from',
+  'to',
+  'step',
+  'each',
+  'in',
+  'while',
+  'forever',
+  'skip',
+  'stop',
+  'recipe',
+  'give',
+  'box',
+  'add',
+  'remove',
+  'attempt',
+  'rescue',
+  'always',
+  'raise',
+  'expect',
+  'wait',
+  'seconds',
+  'second',
+  'remember',
+  'recall',
+  'celebrate',
+  'todo',
+  'seed',
+  'is',
+  'isnt',
+  'above',
+  'below',
+  'and',
+  'or',
+  'not',
+  'yes',
+  'no',
+  'true',
+  'false',
+  'empty',
+];
+
+export const IBP_BUILTINS = [
+  // Text
+  'length',
+  'upper',
+  'lower',
+  'trim',
+  'split',
+  'join',
+  'replace',
+  'contains',
+  'starts',
+  'ends',
+  'repeatText',
+  'reverse',
+  // Math
+  'abs',
+  'round',
+  'floor',
+  'ceil',
+  'min',
+  'max',
+  'sqrt',
+  'power',
+  // Randomness
+  'luck',
+  'coin',
+  'pick',
+  'shuffle',
+  // Lists
+  'map',
+  'filter',
+  'reduce',
+  'sort',
+  'first',
+  'last',
+  'total',
+  'average',
+  'unique',
+  'count',
+  // Boxes
+  'keys',
+  'values',
+  'has',
+  // Types
+  'kind',
+  'number',
+  'text',
+  // Time
+  'today',
+  'now',
+  // Files
+  'readFile',
+  'writeFile',
+  'appendFile',
+  'exists',
+  'listFolder',
+  'deleteFile',
+  // Delight
+  'tip',
+];
+
+export const monarchLanguageDefinition = {
+  defaultToken: '',
+  tokenPostfix: '.ibp',
+
+  keywords: IBP_KEYWORDS,
+  builtins: IBP_BUILTINS,
+
+  operators: [
+    '=',
+    '+',
+    '-',
+    '*',
+    '/',
+    '%',
+    '**',
+    '==',
+    '!=',
+    '<',
+    '>',
+    '<=',
+    '>=',
+    '|>',
+    '..',
+    '=>',
+    '?.',
+  ],
+
+  // Common regular expressions
+  symbols: /[=><!~?:&|+\-*\/\^%]+/,
+  escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
+
+  tokenizer: {
+    root: [
+      // Identifiers and keywords
+      [
+        /[a-zA-Z_\u00A0-\uFFFF][a-zA-Z0-9_\u00A0-\uFFFF]*/,
+        {
+          cases: {
+            '@keywords': 'keyword',
+            '@builtins': 'predefined',
+            '@default': 'identifier',
+          },
+        },
+      ],
+
+      // Whitespace
+      { include: '@whitespace' },
+
+      // Delimiters and operators
+      [/[{}()\[\]]/, '@brackets'],
+      [/[<>](?!@symbols)/, '@brackets'],
+      [
+        /@symbols/,
+        {
+          cases: {
+            '@operators': 'operator',
+            '@default': '',
+          },
+        },
+      ],
+
+      // Numbers
+      [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+      [/\d+/, 'number'],
+
+      // Delimiter: comma, colon
+      [/[;,.]/, 'delimiter'],
+
+      // Strings
+      [/"([^"\\]|\\.)*$/, 'string.invalid'], // non-templated string
+      [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
+    ],
+
+    comment: [[/#.*$/, 'comment']],
+
+    string: [
+      [/[^\\"{]+/, 'string'],
+      [/@escapes/, 'string.escape'],
+      [/\\./, 'string.escape.invalid'],
+      [/\{/, { token: 'delimiter.bracket', next: '@bracketCounting' }],
+      [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }],
+    ],
+
+    bracketCounting: [
+      [/\{/, 'delimiter.bracket', '@bracketCounting'],
+      [/\}/, 'delimiter.bracket', '@pop'],
+      { include: 'root' },
+    ],
+
+    whitespace: [
+      [/[ \t\r\n]+/, 'white'],
+      [/#.*$/, 'comment'],
+    ],
+  },
+};
+

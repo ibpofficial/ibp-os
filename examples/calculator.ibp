@@ -1,0 +1,15 @@
+recipe add(a, b) => a + b
+recipe subtract(a, b) => a - b
+recipe multiply(a, b) => a * b
+recipe divide(a, b) {
+  when b is 0 {
+    raise "Cannot divide by zero"
+  }
+  give a / b
+}
+
+say "10 + 5 = {add(10, 5)}"
+say "10 - 5 = {subtract(10, 5)}"
+say "10 * 5 = {multiply(10, 5)}"
+say "10 / 5 = {divide(10, 5)}"
+

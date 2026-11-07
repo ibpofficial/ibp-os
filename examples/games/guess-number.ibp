@@ -1,0 +1,19 @@
+# Deterministic Guess The Number Game
+seed 42
+keep target = luck(1, 10)
+say "Secret target generated"
+
+recipe checkGuess(guess) {
+  when guess is target {
+    say "Correct!"
+  } orwhen guess below target {
+    say "Too low!"
+  } otherwise {
+    say "Too high!"
+  }
+}
+
+checkGuess(target)
+checkGuess(target - 1)
+checkGuess(target + 1)
+

@@ -1,0 +1,116 @@
+(* IBP EBNF Formal Grammar *)
+
+Program         = { Statement ( NEWLINE | ";" ) } [ Statement ] ;
+
+Statement       = VarDecl
+                | ConstDecl
+                | Assignment
+                | OutputStmt
+                | InputStmt
+                | WhenStmt
+                | UnlessStmt
+                | RepeatStmt
+                | CountStmt
+                | EachStmt
+                | WhileStmt
+                | ForeverStmt
+                | RecipeDecl
+                | BoxDecl
+                | AddStmt
+                | RemoveStmt
+                | AttemptStmt
+                | RaiseStmt
+                | ExpectStmt
+                | WaitStmt
+                | RememberStmt
+                | CelebrateStmt
+                | TodoStmt
+                | SeedStmt
+                | StopStmt
+                | SkipStmt
+                | GiveStmt
+                | ExprStmt ;
+
+VarDecl         = "keep" IDENTIFIER [ "=" Expression ] ;
+ConstDecl       = "lock" IDENTIFIER "=" Expression ;
+Assignment      = Target "=" Expression ;
+Target          = IDENTIFIER { "[" Expression "]" | "." IDENTIFIER } ;
+
+OutputStmt      = ( "say" | "shout" | "whisper" ) Expression ;
+InputStmt       = "ask" [ "number" ] Expression "into" IDENTIFIER ;
+
+WhenStmt        = "when" Expression Block { "orwhen" Expression Block } [ "otherwise" Block ] ;
+UnlessStmt      = "unless" Expression Block ;
+
+RepeatStmt      = "repeat" Expression ( "times" | "time" ) Block ;
+CountStmt       = "count" IDENTIFIER "from" Expression "to" Expression [ "step" Expression ] Block ;
+EachStmt        = "each" IDENTIFIER "in" Expression Block ;
+WhileStmt       = "while" Expression Block ;
+ForeverStmt     = "forever" Block ;
+
+StopStmt        = "stop" ;
+SkipStmt        = "skip" ;
+GiveStmt        = "give" [ Expression ] ;
+
+RecipeDecl      = "recipe" IDENTIFIER "(" [ ParamList ] ")" ( Block | "=>" Expression ) ;
+ParamList       = Param { "," Param } ;
+Param           = IDENTIFIER [ "=" Expression ] ;
+
+BoxDecl         = "box" IDENTIFIER "{" [ BoxEntries ] "}" ;
+BoxLiteral      = "box" "{" [ BoxEntries ] "}" ;
+BoxEntries      = BoxEntry { "," BoxEntry } [ "," ] ;
+BoxEntry        = ( IDENTIFIER | STRING ) ":" Expression ;
+
+AddStmt         = "add" Expression "to" IDENTIFIER ;
+RemoveStmt      = "remove" Expression "from" IDENTIFIER ;
+
+AttemptStmt     = "attempt" Block "rescue" IDENTIFIER Block [ "always" Block ] ;
+RaiseStmt       = "raise" Expression ;
+
+ExpectStmt      = "expect" [ STRING ":" ] Expression ;
+WaitStmt        = "wait" Expression ( "seconds" | "second" ) ;
+RememberStmt    = "remember" Expression "=" Expression ;
+CelebrateStmt   = "celebrate" ;
+TodoStmt        = "todo" STRING ;
+SeedStmt        = "seed" Expression ;
+
+ExprStmt        = Expression ;
+
+Block           = "{" { Statement ( NEWLINE | ";" ) } [ Statement ] "}" ;
+
+Expression      = PipeExpr ;
+PipeExpr        = LogicalOr { "|>" LogicalOr } ;
+LogicalOr       = LogicalAnd { "or" LogicalAnd } ;
+LogicalAnd      = Equality { "and" Equality } ;
+Equality        = Relational { ( "==" | "!=" | "is" | "isnt" ) Relational } ;
+Relational      = Membership { ( "<" | ">" | "<=" | ">=" | "above" | "below" ) Membership } ;
+Membership      = RangeExpr [ "in" RangeExpr ] ;
+RangeExpr       = Additive [ ".." Additive ] ;
+Additive        = Multiplicative { ( "+" | "-" ) Multiplicative } ;
+Multiplicative  = Power { ( "*" | "/" | "%" ) Power } ;
+Power           = Unary [ "**" Power ] ;
+Unary           = ( "-" | "not" ) Unary | Postfix ;
+
+Postfix         = Primary { CallSuffix | IndexSuffix | MemberSuffix | SafeMemberSuffix } ;
+CallSuffix      = "(" [ ArgList ] ")" ;
+IndexSuffix     = "[" Expression "]" ;
+MemberSuffix    = "." IDENTIFIER ;
+SafeMemberSuffix= "?." IDENTIFIER ;
+
+ArgList         = Expression { "," Expression } ;
+
+Primary         = NUMBER
+                | STRING
+                | BOOLEAN
+                | "empty"
+                | IDENTIFIER
+                | ListLiteral
+                | BoxLiteral
+                | "(" Expression ")" ;
+
+ListLiteral     = "[" [ Expression { "," Expression } [ "," ] ] "]" ;
+BOOLEAN         = "yes" | "no" | "true" | "false" ;
+NUMBER          = [ "-" ] DIGIT { DIGIT } [ "." DIGIT { DIGIT } ] ;
+STRING          = '"' { CHAR | "{" Expression "}" } '"' ;
+IDENTIFIER      = ( LETTER | UNICODE_LETTER | "_" ) { LETTER | UNICODE_LETTER | DIGIT | "_" } ;
+

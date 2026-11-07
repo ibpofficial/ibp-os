@@ -1,0 +1,21 @@
+{
+  "name": "ibp-lang",
+  "version": "0.1.0",
+  "description": "IBP Language CLI",
+  "bin": {
+    "ibp": "./bin/ibp.js"
+  },
+  "main": "./src/index.ts",
+  "license": "MIT",
+  "dependencies": {
+    "@ibp/engine": "*",
+    "@ibp/vfs": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
+

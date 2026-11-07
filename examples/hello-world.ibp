@@ -1,0 +1,6 @@
+# Hello World in IBP
+keep name = "World"
+say "Hello, {name}!"
+shout "welcome to ibp"
+whisper "quiet please"
+

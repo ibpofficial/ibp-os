@@ -1,0 +1,10 @@
+keep total = 0
+count i from 1 to 5 {
+  total = total + i
+}
+say "Sum 1..5: {total}"
+
+repeat 3 times {
+  say "IBP loop"
+}
+

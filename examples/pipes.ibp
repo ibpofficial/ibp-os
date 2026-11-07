@@ -1,0 +1,7 @@
+recipe double(x) => x * 2
+recipe isEven(x) => x % 2 == 0
+
+keep nums = [1, 2, 3, 4, 5, 6]
+keep res = nums |> filter(isEven) |> map(double) |> total
+say "Result: {res}"
+
