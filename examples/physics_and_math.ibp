@@ -34,3 +34,4 @@ say "Interpolate 0 to 100 at 75%:", lerp(0, 100, 0.75)
 say "Clamped value (150 clamped to 0..100):", clamp(150, 0, 100)
 
 celebrate
+
