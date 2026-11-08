@@ -332,3 +332,181 @@ export const SettingsOSIcon: React.FC<{ size?: number }> = ({ size = 48 }) => (
     </svg>
   </div>
 );
+
+// 9. Chrome / Web Browser Icon (Authentic Google Chrome 4-color circular disk)
+export const ChromeBrowserIcon: React.FC<{ size?: number; showShortcutArrow?: boolean }> = ({
+  size = 48,
+  showShortcutArrow = false,
+}) => (
+  <div className="relative inline-block select-none" style={{ width: size, height: size }}>
+    <svg viewBox="0 0 100 100" width={size} height={size} className="drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]" fill="none">
+      <defs>
+        <linearGradient id="chrome-red" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#EA4335" />
+          <stop offset="100%" stopColor="#C5221F" />
+        </linearGradient>
+        <linearGradient id="chrome-green" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#34A853" />
+          <stop offset="100%" stopColor="#1E8E3E" />
+        </linearGradient>
+        <linearGradient id="chrome-yellow" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FBBC04" />
+          <stop offset="100%" stopColor="#F29900" />
+        </linearGradient>
+        <linearGradient id="chrome-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4285F4" />
+          <stop offset="100%" stopColor="#1A73E8" />
+        </linearGradient>
+      </defs>
+
+      {/* Red sector */}
+      <path
+        d="M50 8C64.2 8 76.9 14.8 84.8 25.3L50 50L21.4 33.5C27.5 18.2 42.4 8 50 8Z"
+        fill="url(#chrome-red)"
+      />
+      {/* Green sector */}
+      <path
+        d="M84.8 25.3C92 34.8 96 46.5 96 59C96 82.2 78.8 91.5 63 92L50 50L84.8 25.3Z"
+        fill="url(#chrome-green)"
+      />
+      {/* Yellow sector */}
+      <path
+        d="M63 92C48.8 92 36.1 85.2 28.2 74.7L50 50L21.4 33.5C10.2 46.2 8.5 66.8 19 80C26.5 89.4 37.8 92 50 92L63 92Z"
+        fill="url(#chrome-yellow)"
+      />
+
+      {/* Outer Circle Ring border */}
+      <circle cx="50" cy="50" r="44" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
+
+      {/* White inner border ring */}
+      <circle cx="50" cy="50" r="21" fill="#FFFFFF" />
+
+      {/* Center Blue Circle */}
+      <circle cx="50" cy="50" r="17" fill="url(#chrome-blue)" />
+      <circle cx="48" cy="48" r="15" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+    </svg>
+
+    {showShortcutArrow && (
+      <div className="absolute -bottom-0.5 -left-0.5 w-4 h-4 bg-white rounded-sm shadow-md flex items-center justify-center border border-slate-300">
+        <svg viewBox="0 0 16 16" width="11" height="11" fill="none">
+          <path d="M4 12L12 4M12 4H6M12 4V10" stroke="#0284C7" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+    )}
+  </div>
+);
+
+// 10. Zenzy Shop Icon (Vibrant Luxury E-Commerce Bag & Star Tag)
+export const ZenzyShopIcon: React.FC<{ size?: number; showShortcutArrow?: boolean }> = ({
+  size = 48,
+  showShortcutArrow = true,
+}) => (
+  <div className="relative inline-block select-none" style={{ width: size, height: size }}>
+    <svg viewBox="0 0 100 100" width={size} height={size} className="drop-shadow-[0_4px_12px_rgba(236,72,153,0.35)]" fill="none">
+      <defs>
+        <linearGradient id="zenzy-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#EC4899" />
+          <stop offset="50%" stopColor="#A855F7" />
+          <stop offset="100%" stopColor="#6366F1" />
+        </linearGradient>
+        <linearGradient id="zenzy-bag" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="100%" stopColor="#F1F5F9" />
+        </linearGradient>
+      </defs>
+
+      {/* Squircle Background */}
+      <rect x="6" y="6" width="88" height="88" rx="24" fill="url(#zenzy-grad)" />
+      <rect x="6" y="6" width="88" height="88" rx="24" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" />
+
+      {/* Bag Handle */}
+      <path
+        d="M38 38C38 30 43 24 50 24C57 24 62 30 62 38"
+        stroke="#FFFFFF"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+
+      {/* Bag Body */}
+      <path
+        d="M26 38H74L79 78C79.5 82 76.5 85 72.5 85H27.5C23.5 85 20.5 82 21 78L26 38Z"
+        fill="url(#zenzy-bag)"
+      />
+
+      {/* Modern 'Z' monogram on bag */}
+      <path
+        d="M40 50H60L42 70H61"
+        stroke="url(#zenzy-grad)"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Sparkle */}
+      <polygon points="76,22 79,29 86,32 79,35 76,42 73,35 66,32 73,29" fill="#FDE047" />
+    </svg>
+
+    {showShortcutArrow && (
+      <div className="absolute -bottom-0.5 -left-0.5 w-4 h-4 bg-white rounded-sm shadow-md flex items-center justify-center border border-slate-300">
+        <svg viewBox="0 0 16 16" width="11" height="11" fill="none">
+          <path d="M4 12L12 4M12 4H6M12 4V10" stroke="#EC4899" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+    )}
+  </div>
+);
+
+// 11. Ishant Portfolio Icon (Modern Creator Monogram & Code Diamond)
+export const IshantPortfolioIcon: React.FC<{ size?: number; showShortcutArrow?: boolean }> = ({
+  size = 48,
+  showShortcutArrow = true,
+}) => (
+  <div className="relative inline-block select-none" style={{ width: size, height: size }}>
+    <svg viewBox="0 0 100 100" width={size} height={size} className="drop-shadow-[0_4px_12px_rgba(14,165,233,0.35)]" fill="none">
+      <defs>
+        <linearGradient id="ishant-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#0EA5E9" />
+          <stop offset="50%" stopColor="#2563EB" />
+          <stop offset="100%" stopColor="#7C3AED" />
+        </linearGradient>
+        <linearGradient id="ishant-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#38BDF8" />
+          <stop offset="100%" stopColor="#818CF8" />
+        </linearGradient>
+      </defs>
+
+      {/* Squircle Background */}
+      <rect x="6" y="6" width="88" height="88" rx="24" fill="url(#ishant-grad)" />
+      <rect x="6" y="6" width="88" height="88" rx="24" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" />
+
+      {/* Inner Glowing Hexagon / Shield */}
+      <polygon
+        points="50,18 78,34 78,66 50,82 22,66 22,34"
+        fill="rgba(15, 23, 42, 0.45)"
+        stroke="url(#ishant-glow)"
+        strokeWidth="2.5"
+      />
+
+      {/* 'I' Monogram */}
+      <path
+        d="M42 32H58M50 32V68M42 68H58"
+        stroke="#FFFFFF"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+
+      {/* Crown / Star Top */}
+      <circle cx="50" cy="24" r="3.5" fill="#38BDF8" />
+      <circle cx="34" cy="36" r="2" fill="#F472B6" />
+      <circle cx="66" cy="36" r="2" fill="#F472B6" />
+    </svg>
+
+    {showShortcutArrow && (
+      <div className="absolute -bottom-0.5 -left-0.5 w-4 h-4 bg-white rounded-sm shadow-md flex items-center justify-center border border-slate-300">
+        <svg viewBox="0 0 16 16" width="11" height="11" fill="none">
+          <path d="M4 12L12 4M12 4H6M12 4V10" stroke="#0284C7" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+    )}
+  </div>
+);

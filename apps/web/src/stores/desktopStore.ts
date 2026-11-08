@@ -10,6 +10,7 @@ export const APP_REGISTRY: Record<AppId, { title: string; icon: string; defaultW
   playground: { title: 'Playground', icon: 'Trophy', defaultWidth: 1000, defaultHeight: 650 },
   settings: { title: 'Settings', icon: 'Settings', defaultWidth: 600, defaultHeight: 450 },
   langcraft: { title: 'LangCraft (Language Designer)', icon: 'Wand2', defaultWidth: 980, defaultHeight: 640 },
+  browser: { title: 'Chrome', icon: 'Globe', defaultWidth: 1060, defaultHeight: 680 },
 };
 
 interface DesktopStore {
@@ -82,11 +83,29 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
           windows: state.windows.map((w) => (w.id === existing.id ? { ...w, isMinimized: false } : w)),
         }));
       }
+      if (params) {
+        set((state) => ({
+          windows: state.windows.map((w) =>
+            w.id === existing.id
+              ? {
+                  ...w,
+                  params: { ...w.params, ...params },
+                  title: params.title || w.title,
+                }
+              : w
+          ),
+        }));
+      }
       get().focusWindow(existing.id);
       return existing.id;
     }
 
-    const def = APP_REGISTRY[appId];
+    const def = APP_REGISTRY[appId] || {
+      title: 'App',
+      icon: 'Square',
+      defaultWidth: 800,
+      defaultHeight: 550,
+    };
     const newZ = s.topZIndex + 1;
     const windowCount = s.windows.length;
     const offsetX = 50 + (windowCount % 8) * 28;
@@ -95,7 +114,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const newWindow: WindowState = {
       id: `${appId}-${Date.now()}`,
       appId,
-      title: def.title,
+      title: params?.title || def.title,
       icon: def.icon,
       isMinimized: false,
       isMaximized: false,

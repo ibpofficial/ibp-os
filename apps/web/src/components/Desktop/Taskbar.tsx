@@ -18,6 +18,7 @@ import {
   PlaygroundOSIcon,
   MonitorOSIcon,
   SettingsOSIcon,
+  ChromeBrowserIcon,
 } from '../Icons/OSIcons';
 
 interface TaskbarProps {
@@ -71,9 +72,10 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
   const dockApps: { appId: AppId; label: string; renderIcon: () => React.ReactNode }[] = [
     { appId: 'studio', label: 'IBP Studio', renderIcon: () => <VSCodeStudioIcon size={44} showShortcutArrow={false} /> },
+    { appId: 'browser', label: 'Chrome', renderIcon: () => <ChromeBrowserIcon size={44} showShortcutArrow={false} /> },
+    { appId: 'terminal', label: 'Command Prompt', renderIcon: () => <TerminalOSIcon size={44} /> },
     { appId: 'langcraft', label: 'LangCraft Studio', renderIcon: () => <LangCraftIcon size={44} /> },
     { appId: 'explorer', label: 'File Explorer', renderIcon: () => <FolderUserIcon size={44} hasUserBadge={true} /> },
-    { appId: 'terminal', label: 'Terminal', renderIcon: () => <TerminalOSIcon size={44} /> },
     { appId: 'handbook', label: 'Learn IBP', renderIcon: () => <HandbookOSIcon size={44} /> },
     { appId: 'playground', label: 'Playground', renderIcon: () => <PlaygroundOSIcon size={44} /> },
     { appId: 'monitor', label: 'System Monitor', renderIcon: () => <MonitorOSIcon size={44} /> },

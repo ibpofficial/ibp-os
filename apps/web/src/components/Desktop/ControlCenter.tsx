@@ -39,6 +39,7 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
   onBrightnessChange,
 }) => {
   const { theme, toggleTheme, setBooted, windows } = useDesktopStore();
+  const isLight = theme === 'light';
 
   const [soundVolume, setSoundVolume] = useState<number>(() => {
     try {
@@ -89,24 +90,30 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="fixed bottom-20 right-6 w-84 sm:w-92 liquid-glass rounded-3xl shadow-2xl p-4 select-none z-50 text-slate-100 font-sans backdrop-blur-3xl border border-white/20 animate-in fade-in slide-in-from-bottom-5 zoom-in-95 duration-200 space-y-3.5"
+      className={`fixed bottom-20 right-6 w-84 sm:w-92 rounded-3xl shadow-2xl p-4 select-none z-50 font-sans backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-5 zoom-in-95 duration-200 space-y-3.5 ${
+        isLight
+          ? 'bg-white/95 text-slate-800 border border-slate-300'
+          : 'liquid-glass text-slate-100 border border-white/20'
+      }`}
       style={{
-        boxShadow: '0 25px 60px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.15)',
+        boxShadow: isLight
+          ? '0 25px 60px -10px rgba(100,116,139,0.35), 0 0 0 1px rgba(255,255,255,0.6)'
+          : '0 25px 60px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.15)',
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-white/10">
+      <div className={`flex items-center justify-between pb-2 border-b ${isLight ? 'border-slate-200' : 'border-white/10'}`}>
         <div className="flex items-center space-x-2">
           <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-[10px] shadow-sm">
             🪐
           </div>
-          <span className="font-bold text-xs tracking-tight text-slate-100">
+          <span className={`font-bold text-xs tracking-tight ${isLight ? 'text-slate-800' : 'text-slate-100'}`}>
             Control Center
           </span>
         </div>
         <button
           onClick={onClose}
-          className="p-1 rounded-full text-slate-400 hover:text-slate-100 hover:bg-white/10 transition"
+          className={`p-1 rounded-full transition ${isLight ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-200' : 'text-slate-400 hover:text-slate-100 hover:bg-white/10'}`}
           title="Close Controls"
         >
           <X size={14} />

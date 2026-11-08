@@ -48,6 +48,34 @@ export function configureMonaco(monaco: Monaco): void {
     },
   });
 
+  // 2b. Define custom light theme
+  monaco.editor.defineTheme('ibp-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [
+      { token: 'keyword', foreground: '0284C7', fontStyle: 'bold' },
+      { token: 'predefined', foreground: '7C3AED' },
+      { token: 'string', foreground: '059669' },
+      { token: 'number', foreground: 'D97706' },
+      { token: 'number.float', foreground: 'D97706' },
+      { token: 'comment', foreground: '94A3B8', fontStyle: 'italic' },
+      { token: 'operator', foreground: '2563EB' },
+      { token: 'delimiter', foreground: '64748B' },
+      { token: 'identifier', foreground: '0F172A' },
+    ],
+    colors: {
+      'editor.background': '#FFFFFF',
+      'editor.foreground': '#0F172A',
+      'editorLineNumber.foreground': '#94A3B8',
+      'editorLineNumber.activeForeground': '#0284C7',
+      'editor.selectionBackground': '#E0F2FE',
+      'editor.inactiveSelectionBackground': '#F1F5F9',
+      'editorCursor.foreground': '#0284C7',
+      'editorGutter.background': '#F8FAFC',
+      'editorOverviewRuler.border': '#E2E8F0',
+    },
+  });
+
   // 3. Autocomplete / Completion Provider
   monaco.languages.registerCompletionItemProvider(IBP_LANGUAGE_ID, {
     provideCompletionItems: (model, position) => {

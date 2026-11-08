@@ -6,7 +6,8 @@ export type AppId =
   | 'handbook'
   | 'settings'
   | 'playground'
-  | 'langcraft';
+  | 'langcraft'
+  | 'browser';
 
 export interface WindowState {
   id: string;

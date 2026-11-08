@@ -11,6 +11,7 @@ import { HandbookApp } from '../../apps/Handbook';
 import { PlaygroundApp } from '../../apps/Playground';
 import { SettingsApp } from '../../apps/Settings';
 import { LangCraftApp } from '../../apps/LangCraft';
+import { BrowserApp } from '../../apps/Browser';
 import {
   VSCodeStudioIcon,
   FolderUserIcon,
@@ -20,6 +21,7 @@ import {
   PlaygroundOSIcon,
   MonitorOSIcon,
   SettingsOSIcon,
+  ChromeBrowserIcon,
 } from '../Icons/OSIcons';
 
 interface WindowProps {
@@ -34,8 +36,10 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
     maximizeWindow,
     updateWindowBounds,
     activeWindowId,
+    theme,
   } = useDesktopStore();
 
+  const isLight = theme === 'light';
   const isFocused = activeWindowId === window.id;
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0, winX: 0, winY: 0 });
@@ -90,6 +94,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         return <PlaygroundOSIcon size={16} />;
       case 'settings':
         return <SettingsOSIcon size={16} />;
+      case 'browser':
+        return <ChromeBrowserIcon size={16} />;
       default:
         return null;
     }
@@ -113,6 +119,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         return <SettingsApp />;
       case 'langcraft':
         return <LangCraftApp />;
+      case 'browser':
+        return <BrowserApp initialUrl={window.params?.url} />;
       default:
         return <div className="p-4 text-slate-400">App not found</div>;
     }
@@ -125,7 +133,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         position: 'absolute',
         top: 0,
         left: 0,
-        width: '100vw',
+        right: 0,
+        width: '100%',
         height: 'calc(100vh - 68px)',
         zIndex: window.zIndex,
       }
@@ -144,37 +153,63 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
     <div
       style={style}
       onMouseDown={() => focusWindow(window.id)}
-      className={`flex flex-col liquid-glass-window rounded-xl overflow-hidden transition-all duration-150 shadow-2xl ${
-        isFocused ? 'liquid-glass-active ring-1 ring-sky-400/40' : 'opacity-95'
+      className={`flex flex-col overflow-hidden transition-all duration-150 shadow-2xl ${
+        window.isMaximized ? 'rounded-none' : 'rounded-xl'
+      } ${
+        isLight
+          ? isFocused
+            ? 'bg-white/95 text-slate-800 border border-slate-300 ring-1 ring-sky-500/50 shadow-2xl'
+            : 'bg-slate-50/95 text-slate-700 border border-slate-300/80 shadow-lg opacity-95'
+          : `liquid-glass-window ${
+              isFocused ? 'liquid-glass-active ring-1 ring-sky-400/40' : 'opacity-95'
+            }`
       }`}
     >
       {/* Liquid Glass Window Titlebar (Windows-Style Controls on the RIGHT) */}
       <div
         onMouseDown={handleMouseDownHeader}
         onDoubleClick={() => maximizeWindow(window.id)}
-        className={`flex items-center justify-between pl-3 pr-0 py-0 select-none cursor-move border-b border-white/10 h-8 ${
-          isFocused
-            ? 'bg-gradient-to-r from-slate-900/95 via-slate-850/90 to-slate-900/95 text-slate-100'
-            : 'bg-slate-950/85 text-slate-400'
+        className={`flex items-center justify-between pl-3 pr-0 py-0 select-none cursor-move border-b h-8 ${
+          isLight
+            ? isFocused
+              ? 'bg-slate-200/95 text-slate-800 border-slate-300'
+              : 'bg-slate-100/95 text-slate-500 border-slate-250'
+            : isFocused
+            ? 'bg-gradient-to-r from-slate-900/95 via-slate-850/90 to-slate-900/95 text-slate-100 border-white/10'
+            : 'bg-slate-950/85 text-slate-400 border-white/10'
         }`}
       >
         {/* Left: App Icon + Window Title */}
         <div className="flex items-center space-x-2 truncate py-1">
           {getWindowMiniIcon()}
-          <span className="font-semibold text-xs tracking-wide text-slate-100 truncate">
+          <span
+            className={`font-semibold text-xs tracking-wide truncate ${
+              isLight ? 'text-slate-800' : 'text-slate-100'
+            }`}
+          >
             {window.title}
           </span>
-          <span className="text-[10px] text-sky-400/80 font-mono hidden sm:inline px-1.5 py-0.2 rounded bg-sky-950/50 border border-sky-500/20">
+          <span
+            className={`text-[10px] font-mono hidden sm:inline px-1.5 py-0.2 rounded border ${
+              isLight
+                ? 'text-sky-700 bg-sky-50 border-sky-300/60'
+                : 'text-sky-400/80 bg-sky-950/50 border-sky-500/20'
+            }`}
+          >
             {appMeta?.title || 'IBP App'}
           </span>
         </div>
 
         {/* Right: Windows-Style Minimize, Maximize & Close Controls */}
-        <div className="flex items-stretch h-full" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-stretch h-full shrink-0" onMouseDown={(e) => e.stopPropagation()}>
           {/* Minimize Button */}
           <button
             onClick={() => minimizeWindow(window.id)}
-            className="w-11 h-8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className={`w-11 h-8 flex items-center justify-center transition-colors ${
+              isLight
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/70'
+                : 'text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
             title="Minimize"
           >
             <Minus size={13} strokeWidth={2} />
@@ -183,7 +218,11 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
           {/* Maximize / Restore Button */}
           <button
             onClick={() => maximizeWindow(window.id)}
-            className="w-11 h-8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className={`w-11 h-8 flex items-center justify-center transition-colors ${
+              isLight
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/70'
+                : 'text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
             title={window.isMaximized ? 'Restore' : 'Maximize'}
           >
             {window.isMaximized ? (
@@ -196,7 +235,11 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
           {/* Close Button with Windows Red Hover */}
           <button
             onClick={() => closeWindow(window.id)}
-            className="w-11 h-8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#E81123] transition-colors"
+            className={`w-11 h-8 flex items-center justify-center transition-colors ${
+              isLight
+                ? 'text-slate-600 hover:text-white hover:bg-[#E81123]'
+                : 'text-slate-400 hover:text-white hover:bg-[#E81123]'
+            }`}
             title="Close"
           >
             <X size={14} strokeWidth={2} />
@@ -205,7 +248,7 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
       </div>
 
       {/* App Body */}
-      <div className="flex-1 overflow-hidden relative bg-[#0B1120]/95">
+      <div className={`flex-1 overflow-hidden relative ${isLight ? 'bg-white' : 'bg-[#0B1120]/95'}`}>
         <ErrorBoundary fallbackTitle={`Error in ${window.title}`}>
           {renderAppContent()}
         </ErrorBoundary>

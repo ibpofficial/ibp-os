@@ -32,6 +32,9 @@ import {
   PlaygroundOSIcon,
   MonitorOSIcon,
   SettingsOSIcon,
+  ChromeBrowserIcon,
+  ZenzyShopIcon,
+  IshantPortfolioIcon,
 } from '../Icons/OSIcons';
 
 export type WallpaperPresetKey =
@@ -122,7 +125,7 @@ const SAMPLE_WALLPAPERS = [
 
 export const Desktop: React.FC = () => {
   const { isBooted, windows, openWindow, setStartMenu } = useDesktopStore();
-  const { init: initVFS, createFile } = useVFSStore();
+  const { init: initVFS, createFile, files, openFile } = useVFSStore();
 
   const [time, setTime] = useState(new Date());
   const [selectedDesktopId, setSelectedDesktopId] = useState<string | null>(null);
@@ -215,6 +218,7 @@ export const Desktop: React.FC = () => {
     id: string;
     appId: AppId;
     title: string;
+    params?: Record<string, any>;
     renderIcon: () => React.ReactNode;
   }[] = [
     {
@@ -230,6 +234,27 @@ export const Desktop: React.FC = () => {
       renderIcon: () => <FolderUserIcon size={48} hasUserBadge={true} />,
     },
     {
+      id: 'zenzy',
+      appId: 'browser',
+      params: { url: 'https://www.zenzy.shop/', title: 'Zenzy Shop' },
+      title: 'Zenzy',
+      renderIcon: () => <ZenzyShopIcon size={48} showShortcutArrow={true} />,
+    },
+    {
+      id: 'ishant',
+      appId: 'browser',
+      params: { url: 'https://ishantupadhyay.vercel.app/', title: 'Ishant Portfolio' },
+      title: 'Ishant',
+      renderIcon: () => <IshantPortfolioIcon size={48} showShortcutArrow={true} />,
+    },
+    {
+      id: 'chrome',
+      appId: 'browser',
+      params: { url: 'https://www.zenzy.shop/', title: 'Chrome' },
+      title: 'Chrome',
+      renderIcon: () => <ChromeBrowserIcon size={48} showShortcutArrow={false} />,
+    },
+    {
       id: 'langcraft',
       appId: 'langcraft',
       title: 'LangCraft\nStudio',
@@ -242,16 +267,16 @@ export const Desktop: React.FC = () => {
       renderIcon: () => <HandbookOSIcon size={48} />,
     },
     {
+      id: 'terminal',
+      appId: 'terminal',
+      title: 'Command\nPrompt',
+      renderIcon: () => <TerminalOSIcon size={48} />,
+    },
+    {
       id: 'playground',
       appId: 'playground',
       title: 'Playground',
       renderIcon: () => <PlaygroundOSIcon size={48} />,
-    },
-    {
-      id: 'terminal',
-      appId: 'terminal',
-      title: 'Terminal',
-      renderIcon: () => <TerminalOSIcon size={48} />,
     },
     {
       id: 'monitor',
@@ -266,6 +291,11 @@ export const Desktop: React.FC = () => {
       renderIcon: () => <SettingsOSIcon size={48} />,
     },
   ];
+
+  // Dynamically load any files saved to Desktop
+  const desktopSavedFiles = (files || []).filter(
+    (f) => !f.isFolder && f.path.startsWith('IBP://USERS/guest/Desktop')
+  );
 
   const handleSelectPreset = (key: WallpaperPresetKey) => {
     setWallpaperType('preset');
@@ -407,7 +437,7 @@ export const Desktop: React.FC = () => {
               }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
-                openWindow(sc.appId);
+                openWindow(sc.appId, sc.params);
               }}
               className={`flex flex-col items-center justify-start w-22 h-24 p-1.5 rounded-xl transition duration-150 cursor-pointer pointer-events-auto relative text-center group ${
                 isSelected
@@ -429,6 +459,43 @@ export const Desktop: React.FC = () => {
                 }}
               >
                 {sc.title}
+              </span>
+            </div>
+          );
+        })}
+
+        {/* Dynamically Display Any Files Saved to Desktop */}
+        {desktopSavedFiles.map((file) => {
+          const isSelected = selectedDesktopId === file.path;
+          return (
+            <div
+              key={file.path}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedDesktopId(file.path);
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                openFile(file.path);
+                openWindow('studio');
+              }}
+              className={`flex flex-col items-center justify-start w-22 h-24 p-1.5 rounded-xl transition duration-150 cursor-pointer pointer-events-auto relative text-center group ${
+                isSelected
+                  ? 'bg-sky-500/25 border border-sky-400/60 shadow-lg backdrop-blur-sm'
+                  : 'hover:bg-white/10 border border-transparent'
+              }`}
+            >
+              <div className="transition-transform duration-150 group-hover:scale-105">
+                <VSCodeStudioIcon size={48} showShortcutArrow={false} />
+              </div>
+              <span
+                className="mt-1 text-[11px] font-medium text-slate-100 text-center leading-tight whitespace-pre-line tracking-tight px-1 rounded truncate max-w-[80px]"
+                style={{
+                  textShadow:
+                    '0 1px 2px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.9), 0 0 1px black',
+                }}
+              >
+                {file.name}
               </span>
             </div>
           );
