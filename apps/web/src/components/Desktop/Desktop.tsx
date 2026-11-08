@@ -215,9 +215,6 @@ export const Desktop: React.FC = () => {
     } catch {
       // ignore
     }
-    if (isBooted && windows.length === 0) {
-      openWindow('studio');
-    }
   }, [isBooted]);
 
   // Desktop shortcuts matching user's image (VS Code ribbon logo + Acer User Folder)
