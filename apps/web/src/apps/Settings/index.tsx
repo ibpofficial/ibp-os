@@ -46,14 +46,15 @@ export const SettingsApp: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0B1120] text-slate-100 p-6 font-sans text-xs space-y-6 max-w-2xl overflow-y-auto">
-      <div>
-        <h2 className="text-base font-bold text-slate-100 flex items-center space-x-2">
-          <SettingsIcon size={18} className="text-sky-400" />
-          <span>System Settings</span>
-        </h2>
-        <p className="text-slate-400 text-xs mt-1">Configure your IBP OS appearance, custom wallpapers, and workspace environment.</p>
-      </div>
+    <div className="flex flex-col h-full w-full bg-[#0B1120] text-slate-100 p-6 md:p-8 font-sans text-xs overflow-y-auto">
+      <div className="max-w-4xl mx-auto w-full space-y-6">
+        <div>
+          <h2 className="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <SettingsIcon size={18} className="text-sky-400" />
+            <span>System Settings</span>
+          </h2>
+          <p className="text-slate-400 text-xs mt-1">Configure your IBP OS appearance, custom wallpapers, and workspace environment.</p>
+        </div>
 
       {/* Theme Settings */}
       <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl space-y-3">
@@ -162,6 +163,7 @@ export const SettingsApp: React.FC = () => {
             <span>Start Tour</span>
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

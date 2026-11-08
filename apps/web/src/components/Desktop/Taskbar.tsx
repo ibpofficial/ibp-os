@@ -51,8 +51,9 @@ export const Taskbar: React.FC<TaskbarProps> = ({
   const [isDownloadingOffline, setIsDownloadingOffline] = useState(false);
   const [isDockHovered, setIsDockHovered] = useState(false);
 
-  const hasMaximizedWindow = windows.some((w) => !w.isMinimized && w.isMaximized);
-  const shouldHideDock = hasMaximizedWindow && !isDockHovered && !isStartMenuOpen && !isControlCenterOpen;
+  // Auto-hide dock when ANY window is open so there is ZERO bottom gap
+  const hasActiveWindow = windows.some((w) => !w.isMinimized);
+  const shouldHideDock = hasActiveWindow && !isDockHovered && !isStartMenuOpen && !isControlCenterOpen;
 
   useEffect(() => {
     const updateTime = () => {
@@ -90,8 +91,8 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
   return (
     <>
-      {/* Full-width bottom sensor when window is maximized to reveal dock on mouse hover */}
-      {hasMaximizedWindow && (
+      {/* Full-width bottom sensor when a window is open to reveal dock on mouse hover */}
+      {hasActiveWindow && (
         <div
           onMouseEnter={() => setIsDockHovered(true)}
           className="fixed bottom-0 inset-x-0 h-3 z-50 pointer-events-auto bg-transparent"

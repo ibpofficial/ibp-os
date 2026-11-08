@@ -537,10 +537,10 @@ export const Desktop: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Floating Windows Workspace */}
-      <div className="relative flex-1 overflow-hidden pointer-events-none z-20">
+      {/* 3. Windows Workspace (Full Screen Fixed Inset-0, Zero Bottom Gap) */}
+      <div className="fixed inset-0 pointer-events-none z-20 overflow-hidden">
         {windows.map((win) => (
-          <div key={win.id} className="pointer-events-auto">
+          <div key={win.id} className="pointer-events-auto w-full h-full">
             <Window window={win} />
           </div>
         ))}
@@ -892,14 +892,16 @@ export const Desktop: React.FC = () => {
         </div>
       )}
 
-      {/* 6. Floating macOS Liquid Glass Dock & Control Center */}
-      <div className="relative z-40">
-        <Taskbar
-          onOpenWallpaperModal={() => setIsWallpaperModalOpen(true)}
-          brightness={brightness}
-          onBrightnessChange={handleUpdateBrightness}
-        />
-        <StartMenu />
+      {/* 6. Floating macOS Liquid Glass Dock & Control Center (Fixed overlay, Zero Space Reserved in Document Flow) */}
+      <div className="fixed bottom-0 inset-x-0 z-40 pointer-events-none">
+        <div className="pointer-events-auto">
+          <Taskbar
+            onOpenWallpaperModal={() => setIsWallpaperModalOpen(true)}
+            brightness={brightness}
+            onBrightnessChange={handleUpdateBrightness}
+          />
+          <StartMenu />
+        </div>
       </div>
 
       {/* 7. Global Modals */}

@@ -84,24 +84,18 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     // Check if single-instance app is already open
     const existing = s.windows.find((w) => w.appId === appId);
     if (existing) {
-      if (existing.isMinimized) {
-        set((state) => ({
-          windows: state.windows.map((w) => (w.id === existing.id ? { ...w, isMinimized: false } : w)),
-        }));
-      }
-      if (params) {
-        set((state) => ({
-          windows: state.windows.map((w) =>
-            w.id === existing.id
-              ? {
-                  ...w,
-                  params: { ...w.params, ...params },
-                  title: params.title || w.title,
-                }
-              : w
-          ),
-        }));
-      }
+      set((state) => ({
+        windows: state.windows.map((w) =>
+          w.id === existing.id
+            ? {
+                ...w,
+                isMinimized: false,
+                isMaximized: true, // Always open full screen!
+                ...(params ? { params: { ...w.params, ...params }, title: params.title || w.title } : {}),
+              }
+            : w
+        ),
+      }));
       get().focusWindow(existing.id);
       return existing.id;
     }
@@ -109,19 +103,12 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const def = APP_REGISTRY[appId] || {
       title: 'App',
       icon: 'Square',
-      defaultWidth: 800,
-      defaultHeight: 550,
+      defaultWidth: 1050,
+      defaultHeight: 680,
     };
     const newZ = s.topZIndex + 1;
-    const windowCount = s.windows.length;
     const screenW = typeof window !== 'undefined' ? window.innerWidth : 1280;
     const screenH = typeof window !== 'undefined' ? window.innerHeight : 800;
-    const winW = Math.min(def.defaultWidth, Math.max(480, screenW - 60));
-    const winH = Math.min(def.defaultHeight, Math.max(380, screenH - 120));
-    const maxOffsetX = Math.max(16, screenW - winW - 24);
-    const maxOffsetY = Math.max(16, screenH - winH - 72);
-    const offsetX = Math.min(maxOffsetX, Math.max(16, 40 + (windowCount % 8) * 26));
-    const offsetY = Math.min(maxOffsetY, Math.max(16, 30 + (windowCount % 8) * 26));
 
     const newWindow: WindowState = {
       id: `${appId}-${Date.now()}`,
@@ -129,12 +116,12 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       title: params?.title || def.title,
       icon: def.icon,
       isMinimized: false,
-      isMaximized: true,
+      isMaximized: true, // ALL WINDOWS OPEN IN FULL SCREEN MODE
       zIndex: newZ,
-      x: offsetX,
-      y: offsetY,
-      width: winW,
-      height: winH,
+      x: 0,
+      y: 0,
+      width: screenW,
+      height: screenH,
       params,
     };
 

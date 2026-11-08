@@ -154,13 +154,19 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
     <div
       style={style}
       onMouseDown={() => focusWindow(window.id)}
-      className={`flex flex-col overflow-hidden transition-all duration-150 shadow-2xl ${
-        window.isMaximized ? 'rounded-none' : 'rounded-xl'
+      className={`flex flex-col overflow-hidden transition-all duration-150 ${
+        window.isMaximized ? 'rounded-none border-0 shadow-none' : 'rounded-xl shadow-2xl'
       } ${
         isLight
           ? isFocused
-            ? 'bg-white/95 text-slate-800 border border-slate-300 ring-1 ring-sky-500/50 shadow-2xl'
+            ? window.isMaximized
+              ? 'bg-white text-slate-800'
+              : 'bg-white/95 text-slate-800 border border-slate-300 ring-1 ring-sky-500/50 shadow-2xl'
+            : window.isMaximized
+            ? 'bg-slate-50 text-slate-700'
             : 'bg-slate-50/95 text-slate-700 border border-slate-300/80 shadow-lg opacity-95'
+          : window.isMaximized
+          ? 'bg-[#0B1120] text-slate-100'
           : `liquid-glass-window ${
               isFocused ? 'liquid-glass-active ring-1 ring-sky-400/40' : 'opacity-95'
             }`
