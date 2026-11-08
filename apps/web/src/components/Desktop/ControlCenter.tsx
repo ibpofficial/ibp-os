@@ -61,19 +61,31 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
   // Close on Escape key or outside click
   useEffect(() => {
     if (!isOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
+
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-control-center-toggle]')) {
+        return; // Let the toggle button handle toggling
+      }
+      if (containerRef.current && !containerRef.current.contains(target as Node)) {
         onClose();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('mousedown', handleClickOutside);
+    // Defer click listener slightly to prevent the click that opened the popover from closing it
+    const timer = setTimeout(() => {
+      window.addEventListener('click', handleClickOutside);
+    }, 50);
+
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('click', handleClickOutside);
     };
   }, [isOpen, onClose]);
 
@@ -129,15 +141,16 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
     <div
       ref={containerRef}
       onClick={(e) => e.stopPropagation()}
-      className={`fixed w-80 rounded-3xl select-none z-50 font-sans backdrop-blur-3xl p-4 space-y-3 animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-150 ${
+      className={`fixed w-80 rounded-3xl select-none font-sans backdrop-blur-3xl p-4 space-y-3 animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-150 ${
         isLight
-          ? 'bg-white/85 text-slate-900 border border-slate-200/80 shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5'
+          ? 'bg-white/95 text-slate-900 border border-slate-200/90 shadow-[0_25px_65px_-12px_rgba(15,23,42,0.18)] ring-1 ring-black/5'
           : 'liquid-glass text-white border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.8)]'
       }`}
       style={{
         position: 'fixed',
-        bottom: '80px',
+        bottom: '84px',
         right: '24px',
+        zIndex: 70,
       }}
     >
       {/* 1. Header with Refined Insignia */}

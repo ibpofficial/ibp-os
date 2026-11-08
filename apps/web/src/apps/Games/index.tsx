@@ -877,3 +877,4 @@ export const GamesApp: React.FC = () => {
     </div>
   );
 };
+

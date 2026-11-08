@@ -54,7 +54,9 @@ export const Taskbar: React.FC<TaskbarProps> = ({
     setControlCenter,
     setCommandPalette,
     openWindow,
+    theme,
   } = useDesktopStore();
+  const isLight = theme === 'light';
 
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
@@ -62,14 +64,14 @@ export const Taskbar: React.FC<TaskbarProps> = ({
   const [isDockHovered, setIsDockHovered] = useState(false);
   const [startQuickMenu, setStartQuickMenu] = useState<{ x: number; y: number } | null>(null);
 
-  // Auto-hide dock when ANY window is open so there is ZERO bottom gap
-  const hasActiveWindow = windows.some((w) => !w.isMinimized);
-  const shouldHideDock = hasActiveWindow && !isDockHovered && !isStartMenuOpen && !isControlCenterOpen && !startQuickMenu;
+  // Auto-hide dock ONLY when an active window is MAXIMIZED in full screen mode
+  const hasMaximizedWindow = windows.some((w) => !w.isMinimized && w.isMaximized);
+  const shouldHideDock = hasMaximizedWindow && !isDockHovered && !isStartMenuOpen && !isControlCenterOpen && !startQuickMenu;
 
-  // Active Mouse Tracking: Show dock only when cursor is strictly at the bottom 2px,
+  // Active Mouse Tracking: Show dock only when cursor is strictly at the bottom 3px,
   // and immediately hide dock when mouse moves upwards into the window
   useEffect(() => {
-    if (!hasActiveWindow) {
+    if (!hasMaximizedWindow) {
       setIsDockHovered(false);
       return;
     }
@@ -94,18 +96,18 @@ export const Taskbar: React.FC<TaskbarProps> = ({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [hasActiveWindow]);
+  }, [hasMaximizedWindow]);
 
   // Auto-dismiss dock timer: If dock is peeked over an active window, auto-dismiss after 2.5s of inactivity
   useEffect(() => {
-    if (!isDockHovered || !hasActiveWindow || isStartMenuOpen || isControlCenterOpen || startQuickMenu) {
+    if (!isDockHovered || !hasMaximizedWindow || isStartMenuOpen || isControlCenterOpen || startQuickMenu) {
       return;
     }
     const timer = setTimeout(() => {
       setIsDockHovered(false);
     }, 2500);
     return () => clearTimeout(timer);
-  }, [isDockHovered, hasActiveWindow, isStartMenuOpen, isControlCenterOpen, startQuickMenu]);
+  }, [isDockHovered, hasMaximizedWindow, isStartMenuOpen, isControlCenterOpen, startQuickMenu]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -152,8 +154,8 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
   return (
     <>
-      {/* Invisible dismiss shield: When dock is peeked over an active window, moving onto the window dismisses dock instantly */}
-      {hasActiveWindow && isDockHovered && (
+      {/* Invisible dismiss shield: When dock is peeked over an active maximized window, moving onto the window dismisses dock instantly */}
+      {hasMaximizedWindow && isDockHovered && (
         <div
           onMouseEnter={() => setIsDockHovered(false)}
           onMouseMove={() => setIsDockHovered(false)}
@@ -162,7 +164,7 @@ export const Taskbar: React.FC<TaskbarProps> = ({
       )}
 
       {/* Extreme bottom edge sensor (3px) to reveal dock when cursor reaches the very bottom of the screen */}
-      {hasActiveWindow && (
+      {hasMaximizedWindow && (
         <div
           onMouseEnter={() => setIsDockHovered(true)}
           className="fixed bottom-0 inset-x-0 h-[3px] z-50 pointer-events-auto bg-transparent"
@@ -294,41 +296,46 @@ export const Taskbar: React.FC<TaskbarProps> = ({
           {/* macOS Control Center Toggle */}
           <div className="relative group flex flex-col items-center">
             <button
-              onClick={toggleControlCenter}
+              data-control-center-toggle="true"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleControlCenter();
+              }}
               className={`w-11 h-11 rounded-2xl flex items-center justify-center os-icon-spring border transition-all cursor-pointer ${
                 isControlCenterOpen
-                  ? 'bg-sky-500/30 text-sky-300 border-sky-400/50 shadow-lg shadow-sky-500/30'
+                  ? 'bg-sky-500/30 text-sky-400 border-sky-400/50 shadow-lg shadow-sky-500/30'
+                  : isLight
+                  ? 'bg-white/80 hover:bg-white border-slate-300/80 text-slate-700 hover:text-slate-900 shadow-sm'
                   : 'bg-slate-800/80 hover:bg-slate-700/80 border-white/10 text-slate-300 hover:text-white'
               }`}
               title="Control Center"
             >
               <Sliders size={18} />
             </button>
-            <div className="absolute -top-10 px-2.5 py-1 rounded-xl bg-slate-900/95 border border-white/15 text-[11px] text-slate-100 font-semibold opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 whitespace-nowrap shadow-2xl backdrop-blur-xl">
+            <div className={`absolute -top-10 px-2.5 py-1 rounded-xl border text-[11px] font-semibold opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 whitespace-nowrap shadow-2xl backdrop-blur-xl ${
+              isLight ? 'bg-white/95 border-slate-300 text-slate-800 shadow-slate-300/50' : 'bg-slate-900/95 border-white/15 text-slate-100'
+            }`}>
               Control Center
             </div>
           </div>
 
           {/* Mini Clock on Dock */}
           <div
-            onClick={toggleControlCenter}
-            className="flex flex-col items-center justify-center px-2 py-1 rounded-xl hover:bg-white/10 cursor-pointer transition font-mono text-slate-200"
+            data-control-center-toggle="true"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleControlCenter();
+            }}
+            className={`flex flex-col items-center justify-center px-2 py-1 rounded-xl cursor-pointer transition font-mono ${
+              isLight ? 'hover:bg-slate-200/60 text-slate-800' : 'hover:bg-white/10 text-slate-200'
+            }`}
             title={dateStr}
           >
             <span className="text-[11px] font-bold tracking-tight">{timeStr}</span>
-            <span className="text-[9px] text-slate-400 leading-none">{dateStr}</span>
+            <span className={`text-[9px] leading-none ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{dateStr}</span>
           </div>
         </div>
       </div>
-
-      {/* Liquid Glass Control Center Popover */}
-      <ControlCenter
-        isOpen={isControlCenterOpen}
-        onClose={() => setControlCenter(false)}
-        onOpenWallpaperModal={onOpenWallpaperModal}
-        brightness={brightness}
-        onBrightnessChange={onBrightnessChange}
-      />
 
       {/* Start Orb Right-Click Win+X Quick Power Menu */}
       {startQuickMenu && (

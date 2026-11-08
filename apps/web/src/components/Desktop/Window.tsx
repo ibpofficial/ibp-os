@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Minus, Square, Copy, X, SunMoon } from 'lucide-react';
+import { Minus, Square, Copy, X, SunMoon, Sliders } from 'lucide-react';
 import { WindowState } from '../../types/desktop';
 import { useDesktopStore, APP_REGISTRY } from '../../stores/desktopStore';
 import { ErrorBoundary } from '../Common/ErrorBoundary';
@@ -42,6 +42,7 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
     theme,
     toggleTheme,
     toggleStartMenu,
+    toggleControlCenter,
   } = useDesktopStore();
 
   const isLight = theme === 'light';
@@ -228,6 +229,23 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
 
         {/* Right: Windows-Style Minimize, Maximize & Close Controls */}
         <div className="flex items-stretch h-full shrink-0" onMouseDown={(e) => e.stopPropagation()}>
+          {/* Quick Control Center Toggle */}
+          <button
+            data-control-center-toggle="true"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleControlCenter();
+            }}
+            className={`w-8 h-8 flex items-center justify-center transition-colors ${
+              isLight
+                ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-300/70'
+                : 'text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
+            title="Open Control Center"
+          >
+            <Sliders size={12} strokeWidth={2} />
+          </button>
+
           {/* Theme Toggle Button */}
           <button
             onClick={(e) => {

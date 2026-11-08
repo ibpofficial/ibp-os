@@ -17,12 +17,14 @@ import {
   Command,
   Gamepad2,
   Folder,
+  Sliders,
 } from 'lucide-react';
 import { useDesktopStore, APP_REGISTRY } from '../../stores/desktopStore';
 import { useVFSStore } from '../../stores/vfsStore';
 import { Window } from './Window';
 import { Taskbar } from './Taskbar';
 import { StartMenu } from './StartMenu';
+import { ControlCenter } from './ControlCenter';
 import { BootScreen } from './BootScreen';
 import { CommandPalette } from './CommandPalette';
 import { OnboardingTour } from './OnboardingTour';
@@ -45,6 +47,9 @@ import {
 
 export type WallpaperPresetKey =
   | 'deep-space'
+  | 'liquid-light'
+  | 'california-sky'
+  | 'pure-snow'
   | 'cyberpunk'
   | 'aurora'
   | 'sunset'
@@ -66,6 +71,33 @@ export const WALLPAPER_PRESETS: Record<WallpaperPresetKey, WallpaperPreset> = {
       radial-gradient(circle at 15% 20%, rgba(37, 99, 235, 0.20) 0%, transparent 45%),
       radial-gradient(circle at 85% 75%, rgba(56, 189, 248, 0.16) 0%, transparent 50%),
       radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.85) 0%, #0B1120 100%)
+    `,
+  },
+  'liquid-light': {
+    name: 'Liquid Pearl (Light)',
+    previewColor: '#E2E8F0',
+    bg: `
+      radial-gradient(circle at 15% 20%, rgba(224, 242, 254, 0.95) 0%, transparent 50%),
+      radial-gradient(circle at 85% 25%, rgba(243, 232, 255, 0.90) 0%, transparent 50%),
+      radial-gradient(circle at 50% 85%, rgba(254, 240, 138, 0.35) 0%, transparent 60%),
+      radial-gradient(circle at 50% 50%, #F8FAFC 0%, #E2E8F0 100%)
+    `,
+  },
+  'california-sky': {
+    name: 'California Sky (Light)',
+    previewColor: '#BAE6FD',
+    bg: `
+      radial-gradient(circle at 20% 10%, rgba(56, 189, 248, 0.45) 0%, transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(167, 139, 250, 0.35) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, #E0F2FE 0%, #BAE6FD 100%)
+    `,
+  },
+  'pure-snow': {
+    name: 'Minimal Snow (Light)',
+    previewColor: '#F8FAFC',
+    bg: `
+      radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.98) 0%, transparent 60%),
+      radial-gradient(circle at 50% 50%, #FFFFFF 0%, #F1F5F9 100%)
     `,
   },
   cyberpunk: {
@@ -130,12 +162,34 @@ const SAMPLE_WALLPAPERS = [
 ];
 
 export const Desktop: React.FC = () => {
-  const { isBooted, windows, openWindow, setStartMenu, setControlCenter, theme } = useDesktopStore();
+  const {
+    isBooted,
+    windows,
+    openWindow,
+    maximizeWindow,
+    toggleTheme,
+    setStartMenu,
+    setControlCenter,
+    toggleControlCenter,
+    isControlCenterOpen,
+    theme,
+  } = useDesktopStore();
   const isLight = theme === 'light';
   const { init: initVFS, createFile, files, openFile } = useVFSStore();
 
   const [time, setTime] = useState(new Date());
   const [selectedDesktopId, setSelectedDesktopId] = useState<string | null>(null);
+
+  // Sync document element class with current theme (ensures Tailwind dark: selectors disable in light mode)
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
+    }
+  }, [theme]);
 
   // Wallpaper state
   const [wallpaperType, setWallpaperType] = useState<'preset' | 'url' | 'upload'>(() => {
@@ -203,13 +257,51 @@ export const Desktop: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // When booted, open requested app via URL param or default to Studio
+  // Listen for wallpaper changes across sessions/tabs
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const type = localStorage.getItem('ibp_wallpaper_type') as any;
+        if (type) setWallpaperType(type);
+        const preset = localStorage.getItem('ibp_wallpaper_preset') as WallpaperPresetKey;
+        if (preset && WALLPAPER_PRESETS[preset]) setPresetKey(preset);
+        const url = localStorage.getItem('ibp_wallpaper_url');
+        if (url) setCustomUrl(url);
+        const up = localStorage.getItem('ibp_wallpaper_upload');
+        if (up) setCustomUploadData(up);
+      } catch {}
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('ibp_wallpaper_changed', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('ibp_wallpaper_changed', handleStorageChange);
+    };
+  }, []);
+
+  // When booted, handle URL params: app, theme, restore, controlCenter
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
+      const requestedTheme = params.get('theme');
+      if (requestedTheme === 'light' && theme !== 'light') {
+        toggleTheme();
+      } else if (requestedTheme === 'dark' && theme !== 'dark') {
+        toggleTheme();
+      }
+
+      if (params.get('controlCenter') === 'true') {
+        setControlCenter(true);
+      }
+
       const initialApp = params.get('app') as AppId | null;
       if (initialApp && APP_REGISTRY[initialApp]) {
-        openWindow(initialApp);
+        const winId = openWindow(initialApp);
+        if (params.get('restore') === 'true') {
+          setTimeout(() => {
+            maximizeWindow(winId);
+          }, 50);
+        }
         return;
       }
     } catch {
@@ -333,24 +425,50 @@ export const Desktop: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      alert('Image file is too large (max 8MB). Please choose a smaller image.');
+    if (file.size > 15 * 1024 * 1024) {
+      alert('Image file is too large (max 15MB). Please choose a smaller image.');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setWallpaperType('upload');
-        setCustomUploadData(dataUrl);
-        try {
-          localStorage.setItem('ibp_wallpaper_type', 'upload');
-          localStorage.setItem('ibp_wallpaper_upload', dataUrl);
-        } catch {
-          // ignore
+      const originalDataUrl = event.target?.result as string;
+      if (!originalDataUrl) return;
+
+      // Compress onto offscreen canvas so it never exceeds browser localStorage quota
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 1920;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
         }
-      }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          setWallpaperType('upload');
+          setCustomUploadData(compressedDataUrl);
+          try {
+            localStorage.setItem('ibp_wallpaper_type', 'upload');
+            localStorage.setItem('ibp_wallpaper_upload', compressedDataUrl);
+            window.dispatchEvent(new Event('ibp_wallpaper_changed'));
+          } catch (err) {
+            console.warn('Failed saving wallpaper to localStorage:', err);
+          }
+        }
+      };
+      img.src = originalDataUrl;
     };
     reader.readAsDataURL(file);
   };
@@ -403,7 +521,12 @@ export const Desktop: React.FC = () => {
   }
 
   // Calculate background style based on active wallpaper choice
-  const activePreset = WALLPAPER_PRESETS[presetKey] || WALLPAPER_PRESETS['deep-space'];
+  const defaultPreset = isLight ? 'liquid-light' : 'deep-space';
+  const effectivePresetKey =
+    presetKey === 'deep-space' && isLight ? 'liquid-light' :
+    presetKey === 'liquid-light' && !isLight ? 'deep-space' :
+    presetKey;
+  const activePreset = WALLPAPER_PRESETS[effectivePresetKey] || WALLPAPER_PRESETS[defaultPreset];
   let wallpaperBg = activePreset.bg;
   let bgImageStyle: React.CSSProperties = {
     filter: `brightness(${brightness}) blur(${blurAmount}px)`,
@@ -433,15 +556,23 @@ export const Desktop: React.FC = () => {
         setSelectedDesktopId(null);
       }}
       onContextMenu={handleContextMenu}
-      className="relative w-screen h-screen overflow-hidden bg-[#060911] select-none font-sans flex flex-col justify-between"
+      className={`relative w-screen h-screen overflow-hidden select-none font-sans flex flex-col justify-between ${
+        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#060911] text-slate-100'
+      }`}
     >
       {/* Dynamic Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none transform scale-105" style={bgImageStyle} />
-      {/* Dark Ambient Vignette Overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-t from-[#060911]/80 via-transparent to-[#060911]/40" />
+      {/* Ambient Vignette Overlay */}
+      <div
+        className={`absolute inset-0 z-0 pointer-events-none ${
+          isLight
+            ? 'bg-gradient-to-t from-white/30 via-transparent to-white/10'
+            : 'bg-gradient-to-t from-[#060911]/80 via-transparent to-[#060911]/40'
+        }`}
+      />
 
-      {/* 1. Desktop Shortcuts Grid (Arranged cleanly with names permanently online below the icon) */}
-      <div className="absolute top-6 left-6 flex flex-wrap gap-x-5 gap-y-4 max-w-[94vw] z-10 pointer-events-none pb-24">
+      {/* 1. Desktop Shortcuts Grid (Arranged in columns on the left, like Windows/macOS) */}
+      <div className="absolute top-6 left-6 grid grid-flow-col grid-rows-6 auto-cols-max gap-y-2.5 gap-x-3.5 z-10 pointer-events-none pb-24">
         {desktopShortcuts.map((sc) => {
           const isSelected = selectedDesktopId === sc.id;
 
@@ -456,9 +587,11 @@ export const Desktop: React.FC = () => {
                 e.stopPropagation();
                 openWindow(sc.appId, sc.params);
               }}
-              className={`flex flex-col items-center justify-start w-22 h-24 p-1.5 rounded-xl transition duration-150 cursor-pointer pointer-events-auto relative text-center group ${
+              className={`flex flex-col items-center justify-start w-[84px] min-h-[92px] p-1.5 rounded-xl transition duration-150 cursor-pointer pointer-events-auto relative text-center group ${
                 isSelected
                   ? 'bg-sky-500/25 border border-sky-400/60 shadow-lg backdrop-blur-sm'
+                  : isLight
+                  ? 'hover:bg-slate-900/10 border border-transparent'
                   : 'hover:bg-white/10 border border-transparent'
               }`}
             >
@@ -469,10 +602,13 @@ export const Desktop: React.FC = () => {
 
               {/* Icon Label Online Below (Permanently Visible, Crisp Text Shadow) */}
               <span
-                className="mt-1 text-[11px] font-medium text-slate-100 text-center leading-tight whitespace-pre-line tracking-tight px-1 rounded"
+                className={`mt-1.5 text-[11px] text-center leading-tight whitespace-pre-line tracking-tight px-1 rounded ${
+                  isLight ? 'font-semibold text-slate-900' : 'font-medium text-slate-100'
+                }`}
                 style={{
-                  textShadow:
-                    '0 1px 2px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.9), 0 0 1px black',
+                  textShadow: isLight
+                    ? '0 1px 2px rgba(255,255,255,0.95), 0 0 6px white'
+                    : '0 1px 2px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.9), 0 0 1px black',
                 }}
               >
                 {sc.title}
@@ -522,22 +658,42 @@ export const Desktop: React.FC = () => {
       {/* 2. Minimalist Floating Clock & System Pill (Top Right, Clean & Uncluttered) */}
       <div
         className={`absolute top-5 right-6 z-10 pointer-events-none transition-opacity duration-300 ${
-          hasVisibleWindows ? 'opacity-20 hover:opacity-100 pointer-events-auto' : 'opacity-100 pointer-events-auto'
+          hasVisibleWindows ? 'opacity-30 hover:opacity-100 pointer-events-auto' : 'opacity-100 pointer-events-auto'
         }`}
       >
-        <div className="liquid-glass px-4 py-2 rounded-2xl shadow-xl flex items-center space-x-3 text-slate-200 backdrop-blur-xl border border-white/15">
+        <div
+          data-control-center-toggle="true"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleControlCenter();
+          }}
+          className={`liquid-glass px-4 py-2 rounded-2xl shadow-xl flex items-center space-x-3 backdrop-blur-xl cursor-pointer hover:scale-105 transition-all ${
+            isLight
+              ? 'bg-white/90 text-slate-900 border border-slate-250 shadow-slate-200/50'
+              : 'text-slate-200 border border-white/15'
+          }`}
+          title="Click to Open Control Center"
+        >
           <div className="flex flex-col text-right">
-            <span className="text-sm font-bold font-mono tracking-tight text-slate-100">
+            <span className={`text-sm font-bold font-mono tracking-tight ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
               {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
-            <span className="text-[10px] text-slate-400 font-medium">
+            <span className={`text-[10px] font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               {time.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
             </span>
           </div>
-          <div className="w-[1px] h-6 bg-white/15" />
+          <div className={`w-[1px] h-6 ${isLight ? 'bg-slate-300' : 'bg-white/15'}`} />
+          <div className={`p-1 rounded-lg ${isLight ? 'text-sky-600 hover:text-sky-700' : 'text-sky-400 hover:text-sky-300'} transition`}>
+            <Sliders size={16} />
+          </div>
           <button
-            onClick={() => setIsWallpaperModalOpen(true)}
-            className="p-1.5 rounded-xl hover:bg-white/10 text-slate-300 hover:text-purple-300 transition pointer-events-auto"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsWallpaperModalOpen(true);
+            }}
+            className={`p-1.5 rounded-xl hover:bg-white/10 transition pointer-events-auto ${
+              isLight ? 'text-purple-600 hover:bg-purple-50' : 'text-slate-300 hover:text-purple-300'
+            }`}
             title="Customize Wallpaper"
           >
             <Palette size={16} />
@@ -545,12 +701,10 @@ export const Desktop: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Windows Workspace (Full Screen Fixed Inset-0, Zero Bottom Gap) */}
+      {/* 3. Windows Workspace */}
       <div className="fixed inset-0 pointer-events-none z-20 overflow-hidden">
         {windows.map((win) => (
-          <div key={win.id} className="pointer-events-auto w-full h-full">
-            <Window window={win} />
-          </div>
+          <Window key={win.id} window={win} />
         ))}
       </div>
 
@@ -909,7 +1063,7 @@ export const Desktop: React.FC = () => {
         </div>
       )}
 
-      {/* 6. Floating macOS Liquid Glass Dock & Control Center (Fixed overlay, Zero Space Reserved in Document Flow) */}
+      {/* 6. Floating macOS Liquid Glass Dock, Start Menu & Control Center */}
       <div className="fixed bottom-0 inset-x-0 z-40 pointer-events-none">
         <div className="pointer-events-auto">
           <Taskbar
@@ -918,6 +1072,13 @@ export const Desktop: React.FC = () => {
             onBrightnessChange={handleUpdateBrightness}
           />
           <StartMenu />
+          <ControlCenter
+            isOpen={isControlCenterOpen}
+            onClose={() => setControlCenter(false)}
+            onOpenWallpaperModal={() => setIsWallpaperModalOpen(true)}
+            brightness={brightness}
+            onBrightnessChange={handleUpdateBrightness}
+          />
         </div>
       </div>
 

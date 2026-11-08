@@ -97,6 +97,11 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     const screenW = typeof window !== 'undefined' ? window.innerWidth : 1280;
     const screenH = typeof window !== 'undefined' ? window.innerHeight : 800;
 
+    const floatW = Math.min(def.defaultWidth || 1040, Math.max(760, screenW - 160));
+    const floatH = Math.min(def.defaultHeight || 660, Math.max(480, screenH - 150));
+    const floatX = Math.max(24, Math.round((screenW - floatW) / 2));
+    const floatY = Math.max(24, Math.round((screenH - floatH) / 2) - 20);
+
     const newWindow: WindowState = {
       id: `${appId}-${Date.now()}`,
       appId,
@@ -105,10 +110,10 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       isMinimized: false,
       isMaximized: true, // ALL WINDOWS OPEN IN FULL SCREEN MODE
       zIndex: newZ,
-      x: 0,
-      y: 0,
-      width: screenW,
-      height: screenH,
+      x: floatX,
+      y: floatY,
+      width: floatW,
+      height: floatH,
       params,
     };
 
@@ -143,7 +148,26 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
   maximizeWindow: (id) => {
     set((state) => ({
-      windows: state.windows.map((w) => (w.id === id ? { ...w, isMaximized: !w.isMaximized } : w)),
+      windows: state.windows.map((w) => {
+        if (w.id !== id) return w;
+        const willMaximize = !w.isMaximized;
+        const screenW = typeof window !== 'undefined' ? window.innerWidth : 1280;
+        const screenH = typeof window !== 'undefined' ? window.innerHeight : 800;
+        const def = APP_REGISTRY[w.appId] || { defaultWidth: 1040, defaultHeight: 660 };
+        const floatW = Math.min(def.defaultWidth || 1040, Math.max(760, screenW - 160));
+        const floatH = Math.min(def.defaultHeight || 660, Math.max(480, screenH - 150));
+        const floatX = Math.max(24, Math.round((screenW - floatW) / 2));
+        const floatY = Math.max(24, Math.round((screenH - floatH) / 2) - 20);
+
+        return {
+          ...w,
+          isMaximized: willMaximize,
+          // When restoring (un-maximizing), ensure it has a centered floating smaller frame
+          ...(!willMaximize && (w.width >= screenW || w.x <= 0)
+            ? { x: floatX, y: floatY, width: floatW, height: floatH }
+            : {}),
+        };
+      }),
     }));
   },
 
