@@ -396,3 +396,4 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ initialUrl }) => {
     </div>
   );
 };
+

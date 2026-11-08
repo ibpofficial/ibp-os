@@ -21,6 +21,7 @@ interface DesktopStore {
   activeWindowId: string | null;
   topZIndex: number;
   isStartMenuOpen: boolean;
+  isControlCenterOpen: boolean;
   isCommandPaletteOpen: boolean;
   onboardingStep: number; // 0 = off, 1..4 = active steps
 
@@ -29,6 +30,8 @@ interface DesktopStore {
   toggleTheme: () => void;
   toggleStartMenu: () => void;
   setStartMenu: (val: boolean) => void;
+  toggleControlCenter: () => void;
+  setControlCenter: (val: boolean) => void;
   setCommandPalette: (val: boolean) => void;
   setOnboardingStep: (step: number) => void;
 
@@ -62,14 +65,17 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   activeWindowId: 'studio-init',
   topZIndex: 10,
   isStartMenuOpen: false,
+  isControlCenterOpen: false,
   isCommandPaletteOpen: false,
   onboardingStep: 0,
 
   setBooted: (val) => set({ isBooted: val }),
   setUser: (user) => set({ currentUser: user }),
   toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
-  toggleStartMenu: () => set((s) => ({ isStartMenuOpen: !s.isStartMenuOpen })),
+  toggleStartMenu: () => set((s) => ({ isStartMenuOpen: !s.isStartMenuOpen, isControlCenterOpen: false })),
   setStartMenu: (val) => set({ isStartMenuOpen: val }),
+  toggleControlCenter: () => set((s) => ({ isControlCenterOpen: !s.isControlCenterOpen, isStartMenuOpen: false })),
+  setControlCenter: (val) => set({ isControlCenterOpen: val }),
   setCommandPalette: (val) => set({ isCommandPaletteOpen: val }),
   setOnboardingStep: (step) => set({ onboardingStep: step }),
 
@@ -108,8 +114,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     };
     const newZ = s.topZIndex + 1;
     const windowCount = s.windows.length;
-    const offsetX = 50 + (windowCount % 8) * 28;
-    const offsetY = 50 + (windowCount % 8) * 28;
+    const screenW = typeof window !== 'undefined' ? window.innerWidth : 1280;
+    const screenH = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const winW = Math.min(def.defaultWidth, Math.max(480, screenW - 60));
+    const winH = Math.min(def.defaultHeight, Math.max(380, screenH - 120));
+    const maxOffsetX = Math.max(16, screenW - winW - 24);
+    const maxOffsetY = Math.max(16, screenH - winH - 72);
+    const offsetX = Math.min(maxOffsetX, Math.max(16, 40 + (windowCount % 8) * 26));
+    const offsetY = Math.min(maxOffsetY, Math.max(16, 30 + (windowCount % 8) * 26));
 
     const newWindow: WindowState = {
       id: `${appId}-${Date.now()}`,
@@ -121,8 +133,8 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       zIndex: newZ,
       x: offsetX,
       y: offsetY,
-      width: def.defaultWidth,
-      height: def.defaultHeight,
+      width: winW,
+      height: winH,
       params,
     };
 
@@ -131,6 +143,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       activeWindowId: newWindow.id,
       topZIndex: newZ,
       isStartMenuOpen: false,
+      isControlCenterOpen: false,
     }));
 
     return newWindow.id;

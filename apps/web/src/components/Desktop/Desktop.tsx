@@ -12,6 +12,8 @@ import {
   BookOpen,
   Code,
   Wand2,
+  Globe,
+  FilePlus,
 } from 'lucide-react';
 import { useDesktopStore, APP_REGISTRY } from '../../stores/desktopStore';
 import { useVFSStore } from '../../stores/vfsStore';
@@ -124,7 +126,8 @@ const SAMPLE_WALLPAPERS = [
 ];
 
 export const Desktop: React.FC = () => {
-  const { isBooted, windows, openWindow, setStartMenu } = useDesktopStore();
+  const { isBooted, windows, openWindow, setStartMenu, setControlCenter, theme } = useDesktopStore();
+  const isLight = theme === 'light';
   const { init: initVFS, createFile, files, openFile } = useVFSStore();
 
   const [time, setTime] = useState(new Date());
@@ -365,7 +368,12 @@ export const Desktop: React.FC = () => {
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
+    const menuWidth = 240;
+    const menuHeight = 360;
+    const padding = 16;
+    const posX = Math.max(padding, Math.min(e.clientX, window.innerWidth - menuWidth - padding));
+    const posY = Math.max(padding, Math.min(e.clientY, window.innerHeight - menuHeight - padding));
+    setContextMenu({ x: posX, y: posY });
   };
 
   const closeContextMenu = () => {
@@ -412,6 +420,7 @@ export const Desktop: React.FC = () => {
     <div
       onClick={() => {
         setStartMenu(false);
+        setControlCenter(false);
         closeContextMenu();
         setSelectedDesktopId(null);
       }}
@@ -537,14 +546,22 @@ export const Desktop: React.FC = () => {
         ))}
       </div>
 
-      {/* 4. Desktop Right-Click Context Menu */}
+      {/* 4. Desktop Right-Click Context Menu (Opens Exactly at Cursor, Clamped to Screen) */}
       {contextMenu && (
         <div
-          style={{ top: contextMenu.y, left: contextMenu.x }}
+          style={{ position: 'fixed', top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
           onClick={(e) => e.stopPropagation()}
-          className="fixed z-50 w-60 liquid-glass rounded-2xl shadow-2xl p-2 backdrop-blur-2xl text-xs text-slate-200 select-none animate-in fade-in zoom-in-95 duration-100"
+          className={`fixed z-50 w-60 rounded-2xl shadow-2xl p-2 backdrop-blur-2xl text-xs select-none animate-in fade-in zoom-in-95 duration-100 ${
+            isLight
+              ? 'bg-white/95 text-slate-800 border border-slate-300 shadow-2xl'
+              : 'liquid-glass text-slate-200 border border-white/15'
+          }`}
         >
-          <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10 mb-1">
+          <div
+            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border-b mb-1 ${
+              isLight ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/10'
+            }`}
+          >
             IBP OS Workspace
           </div>
           <button
@@ -552,52 +569,86 @@ export const Desktop: React.FC = () => {
               openWindow('studio');
               closeContextMenu();
             }}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-sky-600/30 hover:text-sky-300 transition text-left"
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-sky-50 hover:text-sky-800' : 'hover:bg-sky-600/30 hover:text-sky-300'
+            }`}
           >
-            <Code size={14} className="text-sky-400" />
+            <Code size={14} className="text-sky-500" />
             <span>Open IBP Studio</span>
           </button>
           <button
             onClick={() => {
-              openWindow('langcraft');
+              openWindow('browser', { url: 'https://www.zenzy.shop/', title: 'Chrome' });
               closeContextMenu();
             }}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-purple-600/30 hover:text-purple-300 transition text-left"
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-amber-50 hover:text-amber-800' : 'hover:bg-amber-600/30 hover:text-amber-300'
+            }`}
           >
-            <Wand2 size={14} className="text-purple-400" />
-            <span>LangCraft Studio</span>
+            <Globe size={14} className="text-amber-500" />
+            <span>Open Chrome Browser</span>
           </button>
           <button
             onClick={() => {
               openWindow('terminal');
               closeContextMenu();
             }}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-emerald-600/30 hover:text-emerald-300 transition text-left"
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-emerald-50 hover:text-emerald-800' : 'hover:bg-emerald-600/30 hover:text-emerald-300'
+            }`}
           >
-            <TerminalIcon size={14} className="text-emerald-400" />
-            <span>Open Terminal</span>
+            <TerminalIcon size={14} className="text-emerald-500" />
+            <span>Command Prompt (CMD)</span>
+          </button>
+          <button
+            onClick={() => {
+              openWindow('langcraft');
+              closeContextMenu();
+            }}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-purple-50 hover:text-purple-800' : 'hover:bg-purple-600/30 hover:text-purple-300'
+            }`}
+          >
+            <Wand2 size={14} className="text-purple-500" />
+            <span>LangCraft Studio</span>
           </button>
           <button
             onClick={() => {
               openWindow('handbook');
               closeContextMenu();
             }}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-cyan-600/30 hover:text-cyan-300 transition text-left"
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-cyan-50 hover:text-cyan-800' : 'hover:bg-cyan-600/30 hover:text-cyan-300'
+            }`}
           >
-            <BookOpen size={14} className="text-cyan-400" />
+            <BookOpen size={14} className="text-cyan-500" />
             <span>Learn IBP (Handbook & PDF)</span>
           </button>
+          <button
+            onClick={() => {
+              handleQuickNewFile();
+              closeContextMenu();
+            }}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-indigo-50 hover:text-indigo-800' : 'hover:bg-indigo-600/30 hover:text-indigo-300'
+            }`}
+          >
+            <FilePlus size={14} className="text-indigo-500" />
+            <span>New IBP Starter Script</span>
+          </button>
 
-          <div className="border-t border-white/10 my-1" />
+          <div className={`border-t my-1 ${isLight ? 'border-slate-200' : 'border-white/10'}`} />
 
           <button
             onClick={() => {
               downloadOfflineBundle();
               closeContextMenu();
             }}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-emerald-600/30 hover:text-emerald-300 transition text-left"
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-emerald-50 hover:text-emerald-800' : 'hover:bg-emerald-600/30 hover:text-emerald-300'
+            }`}
           >
-            <Download size={14} className="text-emerald-400" />
+            <Download size={14} className="text-emerald-500" />
             <span>Download Offline OS (ZIP)</span>
           </button>
           <button
@@ -605,16 +656,20 @@ export const Desktop: React.FC = () => {
               setIsWallpaperModalOpen(true);
               closeContextMenu();
             }}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-purple-600/30 hover:text-purple-300 transition text-left"
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-purple-50 hover:text-purple-800' : 'hover:bg-purple-600/30 hover:text-purple-300'
+            }`}
           >
-            <Palette size={14} className="text-purple-400" />
+            <Palette size={14} className="text-purple-500" />
             <span>Customize Wallpaper...</span>
           </button>
           <button
             onClick={() => {
               window.location.reload();
             }}
-            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 hover:text-slate-100 transition text-left"
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
+              isLight ? 'hover:bg-slate-100 text-slate-700' : 'hover:bg-white/10 text-slate-300 hover:text-slate-100'
+            }`}
           >
             <RefreshCw size={14} className="text-slate-400" />
             <span>Refresh Workspace</span>

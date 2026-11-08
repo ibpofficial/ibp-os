@@ -39,13 +39,15 @@ export const Taskbar: React.FC<TaskbarProps> = ({
     minimizeWindow,
     toggleStartMenu,
     isStartMenuOpen,
+    isControlCenterOpen,
+    toggleControlCenter,
+    setControlCenter,
     setCommandPalette,
     openWindow,
   } = useDesktopStore();
 
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
-  const [showControlCenter, setShowControlCenter] = useState(false);
   const [isDownloadingOffline, setIsDownloadingOffline] = useState(false);
 
   useEffect(() => {
@@ -196,9 +198,9 @@ export const Taskbar: React.FC<TaskbarProps> = ({
           {/* macOS Control Center Toggle */}
           <div className="relative group flex flex-col items-center">
             <button
-              onClick={() => setShowControlCenter(!showControlCenter)}
+              onClick={toggleControlCenter}
               className={`w-11 h-11 rounded-2xl flex items-center justify-center os-icon-spring border transition-all cursor-pointer ${
-                showControlCenter
+                isControlCenterOpen
                   ? 'bg-sky-500/30 text-sky-300 border-sky-400/50 shadow-lg shadow-sky-500/30'
                   : 'bg-slate-800/80 hover:bg-slate-700/80 border-white/10 text-slate-300 hover:text-white'
               }`}
@@ -213,7 +215,7 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
           {/* Mini Clock on Dock */}
           <div
-            onClick={() => setShowControlCenter(!showControlCenter)}
+            onClick={toggleControlCenter}
             className="flex flex-col items-center justify-center px-2 py-1 rounded-xl hover:bg-white/10 cursor-pointer transition font-mono text-slate-200"
             title={dateStr}
           >
@@ -225,8 +227,8 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
       {/* Liquid Glass Control Center Popover */}
       <ControlCenter
-        isOpen={showControlCenter}
-        onClose={() => setShowControlCenter(false)}
+        isOpen={isControlCenterOpen}
+        onClose={() => setControlCenter(false)}
         onOpenWallpaperModal={onOpenWallpaperModal}
         brightness={brightness}
         onBrightnessChange={onBrightnessChange}
