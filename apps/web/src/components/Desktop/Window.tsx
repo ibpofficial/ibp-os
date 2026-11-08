@@ -130,12 +130,13 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
 
   const style: React.CSSProperties = window.isMaximized
     ? {
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
-        width: '100%',
-        height: 'calc(100vh - 68px)',
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
         zIndex: window.zIndex,
       }
     : {

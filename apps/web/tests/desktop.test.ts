@@ -41,12 +41,20 @@ describe('Desktop Store & Window Manager', () => {
     const store = useDesktopStore.getState();
     const winId = store.openWindow('explorer');
 
+    // Windows open maximized by default for full-screen immersive OS experience
+    expect(useDesktopStore.getState().windows[0].isMaximized).toBe(true);
+
     store.minimizeWindow(winId);
     expect(useDesktopStore.getState().windows[0].isMinimized).toBe(true);
 
     store.focusWindow(winId);
     expect(useDesktopStore.getState().windows[0].isMinimized).toBe(false);
 
+    // Toggling maximize restores window to floating size
+    store.maximizeWindow(winId);
+    expect(useDesktopStore.getState().windows[0].isMaximized).toBe(false);
+
+    // Toggling again maximizes back to full screen
     store.maximizeWindow(winId);
     expect(useDesktopStore.getState().windows[0].isMaximized).toBe(true);
 

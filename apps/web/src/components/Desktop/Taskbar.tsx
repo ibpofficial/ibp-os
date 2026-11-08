@@ -49,6 +49,10 @@ export const Taskbar: React.FC<TaskbarProps> = ({
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
   const [isDownloadingOffline, setIsDownloadingOffline] = useState(false);
+  const [isDockHovered, setIsDockHovered] = useState(false);
+
+  const hasMaximizedWindow = windows.some((w) => !w.isMinimized && w.isMaximized);
+  const shouldHideDock = hasMaximizedWindow && !isDockHovered && !isStartMenuOpen && !isControlCenterOpen;
 
   useEffect(() => {
     const updateTime = () => {
@@ -86,8 +90,24 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
   return (
     <>
-      {/* Floating macOS-Style Liquid Glass Dock */}
-      <div className="fixed bottom-3 inset-x-0 mx-auto w-max max-w-[96vw] h-16 liquid-glass-dock rounded-3xl flex items-center justify-center px-4 select-none z-50 transition-all duration-200">
+      {/* Full-width bottom sensor when window is maximized to reveal dock on mouse hover */}
+      {hasMaximizedWindow && (
+        <div
+          onMouseEnter={() => setIsDockHovered(true)}
+          className="fixed bottom-0 inset-x-0 h-3 z-50 pointer-events-auto bg-transparent"
+        />
+      )}
+
+      {/* Floating macOS-Style Liquid Glass Dock (Auto-hides in Fullscreen mode like Windows/macOS) */}
+      <div
+        onMouseEnter={() => setIsDockHovered(true)}
+        onMouseLeave={() => setIsDockHovered(false)}
+        className={`fixed bottom-3 inset-x-0 mx-auto w-max max-w-[96vw] h-16 liquid-glass-dock rounded-3xl flex items-center justify-center px-4 select-none z-50 transition-all duration-300 ease-out ${
+          shouldHideDock
+            ? 'translate-y-28 opacity-0 pointer-events-none'
+            : 'translate-y-0 opacity-100 pointer-events-auto shadow-2xl'
+        }`}
+      >
         <div className="flex items-center space-x-2 sm:space-x-3.5">
           {/* Start Orb (macOS Finder / IBP OS Orb) */}
           <div className="relative group flex flex-col items-center">
