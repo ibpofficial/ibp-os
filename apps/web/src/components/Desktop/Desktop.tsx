@@ -702,7 +702,7 @@ export const Desktop: React.FC = () => {
       </div>
 
       {/* 3. Windows Workspace */}
-      <div className="fixed inset-0 pointer-events-none z-20 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden">
         {windows.map((win) => (
           <Window key={win.id} window={win} />
         ))}

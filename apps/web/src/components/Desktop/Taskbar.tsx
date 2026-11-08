@@ -154,15 +154,6 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
   return (
     <>
-      {/* Invisible dismiss shield: When dock is peeked over an active maximized window, moving onto the window dismisses dock instantly */}
-      {hasMaximizedWindow && isDockHovered && (
-        <div
-          onMouseEnter={() => setIsDockHovered(false)}
-          onMouseMove={() => setIsDockHovered(false)}
-          className="fixed inset-0 bottom-24 z-40 bg-transparent pointer-events-auto"
-        />
-      )}
-
       {/* Extreme bottom edge sensor (3px) to reveal dock when cursor reaches the very bottom of the screen */}
       {hasMaximizedWindow && (
         <div

@@ -164,7 +164,7 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
     <div
       style={style}
       onMouseDown={() => focusWindow(window.id)}
-      className={`flex flex-col overflow-hidden transition-all duration-150 ${
+      className={`pointer-events-auto flex flex-col overflow-hidden transition-all duration-150 ${
         window.isMaximized ? 'rounded-none border-0 shadow-none' : 'rounded-xl shadow-2xl'
       } ${
         isLight
@@ -203,7 +203,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
               e.stopPropagation();
               toggleStartMenu();
             }}
-            className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center transition-transform hover:scale-110 shrink-0"
+            onMouseDown={(e) => e.stopPropagation()}
+            className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center transition-transform hover:scale-110 shrink-0 pointer-events-auto cursor-pointer"
             title="Start Menu / Launcher (Win)"
           >
             <IBPOSLogoIcon size={16} />
@@ -228,7 +229,10 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         </div>
 
         {/* Right: Windows-Style Minimize, Maximize & Close Controls */}
-        <div className="flex items-stretch h-full shrink-0" onMouseDown={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-stretch h-full shrink-0 pointer-events-auto z-10"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           {/* Quick Control Center Toggle */}
           <button
             data-control-center-toggle="true"
@@ -236,7 +240,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
               e.stopPropagation();
               toggleControlCenter();
             }}
-            className={`w-8 h-8 flex items-center justify-center transition-colors ${
+            onMouseDown={(e) => e.stopPropagation()}
+            className={`w-8 h-8 flex items-center justify-center transition-colors cursor-pointer pointer-events-auto ${
               isLight
                 ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-300/70'
                 : 'text-slate-400 hover:text-white hover:bg-white/10'
@@ -252,7 +257,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
               e.stopPropagation();
               toggleTheme();
             }}
-            className={`w-8 h-8 flex items-center justify-center transition-colors ${
+            onMouseDown={(e) => e.stopPropagation()}
+            className={`w-8 h-8 flex items-center justify-center transition-colors cursor-pointer pointer-events-auto ${
               isLight
                 ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-300/70'
                 : 'text-slate-400 hover:text-white hover:bg-white/10'
@@ -264,8 +270,12 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
 
           {/* Minimize Button */}
           <button
-            onClick={() => minimizeWindow(window.id)}
-            className={`w-11 h-8 flex items-center justify-center transition-colors ${
+            onClick={(e) => {
+              e.stopPropagation();
+              minimizeWindow(window.id);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className={`w-11 h-8 flex items-center justify-center transition-colors cursor-pointer pointer-events-auto ${
               isLight
                 ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/70'
                 : 'text-slate-400 hover:text-white hover:bg-white/10'
@@ -277,8 +287,12 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
 
           {/* Maximize / Restore Button */}
           <button
-            onClick={() => maximizeWindow(window.id)}
-            className={`w-11 h-8 flex items-center justify-center transition-colors ${
+            onClick={(e) => {
+              e.stopPropagation();
+              maximizeWindow(window.id);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className={`w-11 h-8 flex items-center justify-center transition-colors cursor-pointer pointer-events-auto ${
               isLight
                 ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/70'
                 : 'text-slate-400 hover:text-white hover:bg-white/10'
@@ -294,8 +308,12 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
 
           {/* Close Button with Windows Red Hover */}
           <button
-            onClick={() => closeWindow(window.id)}
-            className={`w-11 h-8 flex items-center justify-center transition-colors ${
+            onClick={(e) => {
+              e.stopPropagation();
+              closeWindow(window.id);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className={`w-11 h-8 flex items-center justify-center transition-colors cursor-pointer pointer-events-auto ${
               isLight
                 ? 'text-slate-600 hover:text-white hover:bg-[#E81123]'
                 : 'text-slate-400 hover:text-white hover:bg-[#E81123]'
