@@ -4,6 +4,14 @@ import {
   Download,
   Search,
   Sparkles,
+  Command,
+  Monitor,
+  Terminal,
+  Settings,
+  Folder,
+  RefreshCw,
+  SunMoon,
+  Gamepad2,
 } from 'lucide-react';
 import { useDesktopStore } from '../../stores/desktopStore';
 import { AppId } from '../../types/desktop';
@@ -19,6 +27,8 @@ import {
   MonitorOSIcon,
   SettingsOSIcon,
   ChromeBrowserIcon,
+  ArcadeGamesIcon,
+  IBPOSLogoIcon,
 } from '../Icons/OSIcons';
 
 interface TaskbarProps {
@@ -50,10 +60,52 @@ export const Taskbar: React.FC<TaskbarProps> = ({
   const [dateStr, setDateStr] = useState('');
   const [isDownloadingOffline, setIsDownloadingOffline] = useState(false);
   const [isDockHovered, setIsDockHovered] = useState(false);
+  const [startQuickMenu, setStartQuickMenu] = useState<{ x: number; y: number } | null>(null);
 
   // Auto-hide dock when ANY window is open so there is ZERO bottom gap
   const hasActiveWindow = windows.some((w) => !w.isMinimized);
-  const shouldHideDock = hasActiveWindow && !isDockHovered && !isStartMenuOpen && !isControlCenterOpen;
+  const shouldHideDock = hasActiveWindow && !isDockHovered && !isStartMenuOpen && !isControlCenterOpen && !startQuickMenu;
+
+  // Active Mouse Tracking: Show dock only when cursor is strictly at the bottom 2px,
+  // and immediately hide dock when mouse moves upwards into the window
+  useEffect(() => {
+    if (!hasActiveWindow) {
+      setIsDockHovered(false);
+      return;
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // Reveal dock only if cursor hits the bottom 3px edge
+      if (e.clientY >= window.innerHeight - 3) {
+        setIsDockHovered(true);
+      } else if (e.clientY < window.innerHeight - 80) {
+        // As soon as cursor leaves the dock zone upwards into the window, hide immediately!
+        setIsDockHovered(false);
+      }
+    };
+
+    const handleBlur = () => {
+      setIsDockHovered(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('blur', handleBlur);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [hasActiveWindow]);
+
+  // Auto-dismiss dock timer: If dock is peeked over an active window, auto-dismiss after 2.5s of inactivity
+  useEffect(() => {
+    if (!isDockHovered || !hasActiveWindow || isStartMenuOpen || isControlCenterOpen || startQuickMenu) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setIsDockHovered(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [isDockHovered, hasActiveWindow, isStartMenuOpen, isControlCenterOpen, startQuickMenu]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -65,6 +117,14 @@ export const Taskbar: React.FC<TaskbarProps> = ({
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Dismiss start quick menu on click outside
+  useEffect(() => {
+    if (!startQuickMenu) return;
+    const handleClick = () => setStartQuickMenu(null);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [startQuickMenu]);
 
   const handleDownloadOffline = async () => {
     setIsDownloadingOffline(true);
@@ -79,6 +139,7 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
   const dockApps: { appId: AppId; label: string; renderIcon: () => React.ReactNode }[] = [
     { appId: 'studio', label: 'IBP Studio', renderIcon: () => <VSCodeStudioIcon size={44} showShortcutArrow={false} /> },
+    { appId: 'games', label: 'Arcade Games', renderIcon: () => <ArcadeGamesIcon size={44} /> },
     { appId: 'browser', label: 'Chrome', renderIcon: () => <ChromeBrowserIcon size={44} showShortcutArrow={false} /> },
     { appId: 'terminal', label: 'Command Prompt', renderIcon: () => <TerminalOSIcon size={44} /> },
     { appId: 'langcraft', label: 'LangCraft Studio', renderIcon: () => <LangCraftIcon size={44} /> },
@@ -91,11 +152,20 @@ export const Taskbar: React.FC<TaskbarProps> = ({
 
   return (
     <>
-      {/* Full-width bottom sensor when a window is open to reveal dock on mouse hover */}
+      {/* Invisible dismiss shield: When dock is peeked over an active window, moving onto the window dismisses dock instantly */}
+      {hasActiveWindow && isDockHovered && (
+        <div
+          onMouseEnter={() => setIsDockHovered(false)}
+          onMouseMove={() => setIsDockHovered(false)}
+          className="fixed inset-0 bottom-24 z-40 bg-transparent pointer-events-auto"
+        />
+      )}
+
+      {/* Extreme bottom edge sensor (3px) to reveal dock when cursor reaches the very bottom of the screen */}
       {hasActiveWindow && (
         <div
           onMouseEnter={() => setIsDockHovered(true)}
-          className="fixed bottom-0 inset-x-0 h-3 z-50 pointer-events-auto bg-transparent"
+          className="fixed bottom-0 inset-x-0 h-[3px] z-50 pointer-events-auto bg-transparent"
         />
       )}
 
@@ -105,28 +175,33 @@ export const Taskbar: React.FC<TaskbarProps> = ({
         onMouseLeave={() => setIsDockHovered(false)}
         className={`fixed bottom-3 inset-x-0 mx-auto w-max max-w-[96vw] h-16 liquid-glass-dock rounded-3xl flex items-center justify-center px-4 select-none z-50 transition-all duration-300 ease-out ${
           shouldHideDock
-            ? 'translate-y-28 opacity-0 pointer-events-none'
+            ? 'translate-y-36 opacity-0 pointer-events-none'
             : 'translate-y-0 opacity-100 pointer-events-auto shadow-2xl'
         }`}
       >
         <div className="flex items-center space-x-2 sm:space-x-3.5">
-          {/* Start Orb (macOS Finder / IBP OS Orb) */}
+          {/* Start Orb (Refined IBP OS Insignia Logo with Win+X Quick Menu) */}
           <div className="relative group flex flex-col items-center">
             <button
               onClick={toggleStartMenu}
-              className={`w-11 h-11 rounded-2xl flex items-center justify-center os-icon-spring transition-all ${
+              onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setStartQuickMenu({ x: e.clientX, y: e.clientY });
+              }}
+              className={`w-11 h-11 rounded-2xl flex items-center justify-center os-icon-spring transition-all cursor-pointer ${
                 isStartMenuOpen
                   ? 'bg-sky-500/30 border border-sky-400/60 shadow-lg shadow-sky-500/40 scale-110'
                   : 'hover:bg-white/10'
               }`}
-              title="Start Menu"
+              title="Start Menu (Right-click for Quick Menu)"
             >
-              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-sky-500/40 border border-white/30 text-sm">
-                🪐
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
+                <IBPOSLogoIcon size={32} />
               </div>
             </button>
             <div className="absolute -top-10 px-2.5 py-1 rounded-xl bg-slate-900/95 border border-white/15 text-[11px] text-slate-100 font-medium opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 whitespace-nowrap shadow-xl backdrop-blur-xl">
-              IBP OS
+              Start Menu
             </div>
           </div>
 
@@ -254,6 +329,98 @@ export const Taskbar: React.FC<TaskbarProps> = ({
         brightness={brightness}
         onBrightnessChange={onBrightnessChange}
       />
+
+      {/* Start Orb Right-Click Win+X Quick Power Menu */}
+      {startQuickMenu && (
+        <div
+          style={{ position: 'fixed', bottom: '80px', left: `${startQuickMenu.x}px` }}
+          onClick={(e) => e.stopPropagation()}
+          className="fixed z-50 w-56 rounded-2xl liquid-glass shadow-2xl p-1.5 backdrop-blur-2xl text-xs select-none border border-white/20 text-slate-100 space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
+        >
+          <div className="px-2.5 py-1.5 border-b border-white/10 flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider">
+            <span>Quick Actions</span>
+            <Command size={11} />
+          </div>
+
+          <button
+            onClick={() => {
+              openWindow('studio');
+              setStartQuickMenu(null);
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition text-left text-slate-200 hover:text-white"
+          >
+            <Monitor size={14} className="text-slate-300" />
+            <span>IBP Studio</span>
+          </button>
+
+          <button
+            onClick={() => {
+              openWindow('terminal');
+              setStartQuickMenu(null);
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition text-left text-slate-200 hover:text-white"
+          >
+            <Terminal size={14} className="text-slate-300" />
+            <span>Command Prompt</span>
+          </button>
+
+          <button
+            onClick={() => {
+              openWindow('explorer');
+              setStartQuickMenu(null);
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition text-left text-slate-200 hover:text-white"
+          >
+            <Folder size={14} className="text-slate-300" />
+            <span>File Explorer</span>
+          </button>
+
+          <button
+            onClick={() => {
+              openWindow('games');
+              setStartQuickMenu(null);
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition text-left text-slate-200 hover:text-white"
+          >
+            <Gamepad2 size={14} className="text-slate-300" />
+            <span>Arcade Games</span>
+          </button>
+
+          <button
+            onClick={() => {
+              openWindow('settings');
+              setStartQuickMenu(null);
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition text-left text-slate-200 hover:text-white"
+          >
+            <Settings size={14} className="text-slate-300" />
+            <span>Settings</span>
+          </button>
+
+          <div className="border-t border-white/10 my-1" />
+
+          <button
+            onClick={() => {
+              useDesktopStore.getState().toggleTheme();
+              setStartQuickMenu(null);
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition text-left text-slate-200 hover:text-white"
+          >
+            <SunMoon size={14} className="text-slate-300" />
+            <span>Toggle Light / Dark Mode</span>
+          </button>
+
+          <button
+            onClick={() => {
+              window.location.reload();
+            }}
+            className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl hover:bg-white/10 transition text-left text-slate-200 hover:text-white"
+          >
+            <RefreshCw size={14} className="text-slate-300" />
+            <span>Restart Workspace</span>
+          </button>
+        </div>
+      )}
     </>
   );
 };

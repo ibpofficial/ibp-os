@@ -7,7 +7,8 @@ export type AppId =
   | 'settings'
   | 'playground'
   | 'langcraft'
-  | 'browser';
+  | 'browser'
+  | 'games';
 
 export interface WindowState {
   id: string;

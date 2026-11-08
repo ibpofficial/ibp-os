@@ -129,20 +129,15 @@ export const FolderUserIcon: React.FC<{ size?: number; hasUserBadge?: boolean }>
         fill="url(#folder-tab-grad)"
       />
 
-      {/* White document inside sneak peek */}
-      <rect x="14" y="22" width="72" height="24" rx="3" fill="#F8FAFC" opacity="0.85" />
-      <line x1="22" y1="28" x2="50" y2="28" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" />
-      <line x1="22" y1="34" x2="40" y2="34" stroke="#CBD5E1" strokeWidth="2" strokeLinecap="round" />
-
       {/* Front Folder Flap with 3D bevel */}
       <path
-        d="M4 36C4 32.6863 6.68629 30 10 30H90C93.3137 30 96 32.6863 96 36V78C96 82.4183 92.4183 86 88 86H12C7.58172 86 4 82.4183 4 78V36Z"
+        d="M4 34C4 30.6863 6.68629 28 10 28H90C93.3137 28 96 30.6863 96 34V78C96 82.4183 92.4183 86 88 86H12C7.58172 86 4 82.4183 4 78V34Z"
         fill="url(#folder-body-grad)"
       />
 
       {/* Top rim highlight */}
       <path
-        d="M4 36C4 32.6863 6.68629 30 10 30H90C93.3137 30 96 32.6863 96 36V38H4V36Z"
+        d="M4 34C4 30.6863 6.68629 28 10 28H90C93.3137 28 96 30.6863 96 34V36H4V34Z"
         fill="url(#folder-rim-grad)"
       />
 
@@ -155,13 +150,13 @@ export const FolderUserIcon: React.FC<{ size?: number; hasUserBadge?: boolean }>
 
       {/* User Silhouette on folder (exact match to user's Acer image!) */}
       {hasUserBadge && (
-        <g opacity="0.65" transform="translate(0, 4)">
+        <g opacity="0.80">
           {/* Head */}
-          <circle cx="50" cy="50" r="10" fill="#92400E" />
+          <circle cx="50" cy="52" r="11" fill="#78350F" />
           {/* Shoulders */}
           <path
-            d="M32 72C32 63.5 39.5 59 50 59C60.5 59 68 63.5 68 72C68 73.5 66.5 74 65 74H35C33.5 74 32 73.5 32 72Z"
-            fill="#92400E"
+            d="M30 76C30 65 39 61 50 61C61 61 70 65 70 76C70 78 68 79 66 79H34C32 79 30 78 30 76Z"
+            fill="#78350F"
           />
         </g>
       )}
@@ -509,4 +504,117 @@ export const IshantPortfolioIcon: React.FC<{ size?: number; showShortcutArrow?: 
       </div>
     )}
   </div>
+);
+
+// 12. Arcade Games Icon (Retro glass controller with neon glow)
+export const ArcadeGamesIcon: React.FC<{ size?: number; showShortcutArrow?: boolean }> = ({
+  size = 48,
+  showShortcutArrow = false,
+}) => (
+  <div className="relative inline-block select-none" style={{ width: size, height: size }}>
+    <svg
+      viewBox="0 0 100 100"
+      width={size}
+      height={size}
+      className="drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="games-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8B5CF6" />
+          <stop offset="50%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#EC4899" />
+        </linearGradient>
+      </defs>
+
+      <rect x="6" y="6" width="88" height="88" rx="24" fill="url(#games-grad)" />
+      <rect x="6" y="6" width="88" height="88" rx="24" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
+
+      {/* Controller Body */}
+      <rect x="22" y="32" width="56" height="36" rx="14" fill="#0F172A" stroke="rgba(255,255,255,0.2)" strokeWidth="2" />
+
+      {/* D-Pad Left */}
+      <path d="M34 42V58M26 50H42" stroke="#38BDF8" strokeWidth="3.5" strokeLinecap="round" />
+
+      {/* Action Buttons Right */}
+      <circle cx="62" cy="46" r="3" fill="#EC4899" />
+      <circle cx="70" cy="54" r="3" fill="#F59E0B" />
+      <circle cx="56" cy="54" r="3" fill="#10B981" />
+      <circle cx="64" cy="60" r="3" fill="#3B82F6" />
+    </svg>
+
+    {showShortcutArrow && (
+      <div className="absolute -bottom-0.5 -left-0.5 w-4 h-4 bg-white rounded-sm shadow-md flex items-center justify-center border border-slate-300">
+        <svg viewBox="0 0 16 16" width="11" height="11" fill="none">
+          <path d="M4 12L12 4M12 4H6M12 4V10" stroke="#0284C7" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+    )}
+  </div>
+);
+
+// 13. Hyper-Refined IBP OS Insignia Logo (For Start Orb & System Branding)
+export const IBPOSLogoIcon: React.FC<{ size?: number; className?: string }> = ({
+  size = 36,
+  className = '',
+}) => (
+  <svg
+    viewBox="0 0 100 100"
+    width={size}
+    height={size}
+    className={`select-none ${className}`}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="ibp-orb-outer" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#38BDF8" />
+        <stop offset="50%" stopColor="#6366F1" />
+        <stop offset="100%" stopColor="#8B5CF6" />
+      </linearGradient>
+      <linearGradient id="ibp-orb-core" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FFFFFF" />
+        <stop offset="100%" stopColor="#BAE6FD" />
+      </linearGradient>
+      <filter id="ibp-glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+
+    {/* Outer Orbital Ring 1 */}
+    <ellipse
+      cx="50"
+      cy="50"
+      rx="40"
+      ry="16"
+      transform="rotate(-25 50 50)"
+      stroke="url(#ibp-orb-outer)"
+      strokeWidth="3.5"
+      strokeDasharray="4 2"
+      opacity="0.8"
+    />
+
+    {/* Outer Orbital Ring 2 */}
+    <ellipse
+      cx="50"
+      cy="50"
+      rx="40"
+      ry="16"
+      transform="rotate(35 50 50)"
+      stroke="url(#ibp-orb-outer)"
+      strokeWidth="3.5"
+      opacity="0.9"
+    />
+
+    {/* Center Polished Nucleus Sphere */}
+    <circle cx="50" cy="50" r="18" fill="url(#ibp-orb-outer)" filter="url(#ibp-glow)" />
+    <circle cx="45" cy="45" r="7" fill="url(#ibp-orb-core)" opacity="0.9" />
+
+    {/* Satellite Node Points */}
+    <circle cx="16" cy="35" r="3" fill="#38BDF8" />
+    <circle cx="84" cy="65" r="3" fill="#8B5CF6" />
+    <circle cx="50" cy="12" r="2.5" fill="#FFFFFF" />
+  </svg>
 );

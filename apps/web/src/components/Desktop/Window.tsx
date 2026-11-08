@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Minus, Square, Copy, X } from 'lucide-react';
+import { Minus, Square, Copy, X, SunMoon } from 'lucide-react';
 import { WindowState } from '../../types/desktop';
 import { useDesktopStore, APP_REGISTRY } from '../../stores/desktopStore';
 import { ErrorBoundary } from '../Common/ErrorBoundary';
@@ -12,6 +12,7 @@ import { PlaygroundApp } from '../../apps/Playground';
 import { SettingsApp } from '../../apps/Settings';
 import { LangCraftApp } from '../../apps/LangCraft';
 import { BrowserApp } from '../../apps/Browser';
+import { GamesApp } from '../../apps/Games';
 import {
   VSCodeStudioIcon,
   FolderUserIcon,
@@ -22,6 +23,8 @@ import {
   MonitorOSIcon,
   SettingsOSIcon,
   ChromeBrowserIcon,
+  ArcadeGamesIcon,
+  IBPOSLogoIcon,
 } from '../Icons/OSIcons';
 
 interface WindowProps {
@@ -37,6 +40,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
     updateWindowBounds,
     activeWindowId,
     theme,
+    toggleTheme,
+    toggleStartMenu,
   } = useDesktopStore();
 
   const isLight = theme === 'light';
@@ -96,6 +101,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         return <SettingsOSIcon size={16} />;
       case 'browser':
         return <ChromeBrowserIcon size={16} />;
+      case 'games':
+        return <ArcadeGamesIcon size={16} />;
       default:
         return null;
     }
@@ -121,6 +128,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         return <LangCraftApp />;
       case 'browser':
         return <BrowserApp initialUrl={window.params?.url} />;
+      case 'games':
+        return <GamesApp />;
       default:
         return <div className="p-4 text-slate-400">App not found</div>;
     }
@@ -186,8 +195,18 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
             : 'bg-slate-950/85 text-slate-400 border-white/10'
         }`}
       >
-        {/* Left: App Icon + Window Title */}
+        {/* Left: Start Orb + App Icon + Window Title */}
         <div className="flex items-center space-x-2 truncate py-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleStartMenu();
+            }}
+            className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center transition-transform hover:scale-110 shrink-0"
+            title="Start Menu / Launcher (Win)"
+          >
+            <IBPOSLogoIcon size={16} />
+          </button>
           {getWindowMiniIcon()}
           <span
             className={`font-semibold text-xs tracking-wide truncate ${
@@ -209,6 +228,22 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
 
         {/* Right: Windows-Style Minimize, Maximize & Close Controls */}
         <div className="flex items-stretch h-full shrink-0" onMouseDown={(e) => e.stopPropagation()}>
+          {/* Theme Toggle Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleTheme();
+            }}
+            className={`w-8 h-8 flex items-center justify-center transition-colors ${
+              isLight
+                ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-300/70'
+                : 'text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
+            title="Toggle Light / Dark Mode"
+          >
+            <SunMoon size={12} strokeWidth={2} />
+          </button>
+
           {/* Minimize Button */}
           <button
             onClick={() => minimizeWindow(window.id)}

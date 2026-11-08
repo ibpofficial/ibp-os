@@ -11,6 +11,7 @@ export const APP_REGISTRY: Record<AppId, { title: string; icon: string; defaultW
   settings: { title: 'Settings', icon: 'Settings', defaultWidth: 600, defaultHeight: 450 },
   langcraft: { title: 'LangCraft (Language Designer)', icon: 'Wand2', defaultWidth: 980, defaultHeight: 640 },
   browser: { title: 'Chrome', icon: 'Globe', defaultWidth: 1060, defaultHeight: 680 },
+  games: { title: 'Arcade Games', icon: 'Gamepad2', defaultWidth: 1050, defaultHeight: 680 },
 };
 
 interface DesktopStore {
