@@ -236,6 +236,77 @@ export function registerBuiltins(env: Environment): void {
     return makeNumber(total === 0 ? 0 : (part / total) * 100);
   }));
 
+  // Dynamic Arithmetic Evaluator: compute(a, op, b) / execute(a, op, b) / hisab(a, op, b)
+  const computeOp = (args: IBPValue[]) => {
+    if (args.length === 0) {
+      throw new IBPError({ kind: 'TypeError', message: 'compute requires at least 1 argument' });
+    }
+    let aNum = 0;
+    let opStr = '+';
+    let bNum = 0;
+
+    if (args.length >= 3) {
+      aNum = args[0].kind === 'number' ? args[0].value : Number(valueToString(args[0]));
+      opStr = valueToString(args[1]).trim();
+      bNum = args[2].kind === 'number' ? args[2].value : Number(valueToString(args[2]));
+    } else if (args.length === 1 && args[0].kind === 'text') {
+      const text = args[0].value.trim();
+      const match = text.match(/^([+-]?\d+(?:\.\d+)?)\s*([\+\-\*\/xX%^]|plus|minus|times|divided by|jod|ghatao|guna|bhag)\s*([+-]?\d+(?:\.\d+)?)$/);
+      if (match) {
+        aNum = Number(match[1]);
+        opStr = match[2];
+        bNum = Number(match[3]);
+      } else {
+        throw new IBPError({ kind: 'TypeError', message: `Could not parse arithmetic expression "${text}"` });
+      }
+    } else {
+      throw new IBPError({ kind: 'TypeError', message: 'compute expects 3 arguments: compute(num1, op, num2)' });
+    }
+
+    if (isNaN(aNum) || isNaN(bNum)) {
+      throw new IBPError({ kind: 'TypeError', message: 'Operands must be valid numbers' });
+    }
+
+    const cleanOp = opStr.toLowerCase();
+    switch (cleanOp) {
+      case '+':
+      case 'plus':
+      case 'jod':
+      case 'jodo':
+        return makeNumber(aNum + bNum);
+      case '-':
+      case 'minus':
+      case 'ghatao':
+        return makeNumber(aNum - bNum);
+      case '*':
+      case 'x':
+      case 'times':
+      case 'multiply':
+      case 'guna':
+        return makeNumber(aNum * bNum);
+      case '/':
+      case 'divide':
+      case 'divided by':
+      case 'bhag':
+        if (bNum === 0) throw new IBPError({ kind: 'MathError', message: 'Division by zero is not allowed' });
+        return makeNumber(aNum / bNum);
+      case '%':
+      case 'mod':
+        return makeNumber(aNum % bNum);
+      case '^':
+      case '**':
+      case 'pow':
+        return makeNumber(Math.pow(aNum, bNum));
+      default:
+        throw new IBPError({ kind: 'TypeError', message: `Unsupported operator "${opStr}". Supported: +, -, *, /, %, ^` });
+    }
+  };
+
+  env.declareConst('compute', makeNativeRecipe('compute', computeOp));
+  env.declareConst('calculate', makeNativeRecipe('calculate', computeOp));
+  env.declareConst('execute', makeNativeRecipe('execute', computeOp));
+  env.declareConst('hisab', makeNativeRecipe('hisab', computeOp));
+
   // Physics formulas
   env.declareConst('force', makeNativeRecipe('force', (args) => {
     // F = m * a

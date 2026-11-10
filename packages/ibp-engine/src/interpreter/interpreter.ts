@@ -60,6 +60,7 @@ import { VirtualClock } from '../runtime/clock';
 import { IBPError } from '../diagnostics/error';
 import { registerBuiltins } from '../builtins';
 import { tokenize } from '../lexer/lexer';
+import { preprocessEasyFlow } from '../lexer/preprocessor';
 import { Parser } from '../parser/parser';
 
 export interface InterpreterOptions {
@@ -1404,9 +1405,11 @@ export function executeIBP(source: string, options: InterpreterOptions = {}): {
   const events: EngineEvent[] = [];
   const output: string[] = [];
 
+  const processed = preprocessEasyFlow(source);
+
   const opts: InterpreterOptions = {
     ...options,
-    sourceCode: source,
+    sourceCode: processed,
     scriptedInput: options.scriptedInput ? [...options.scriptedInput] : undefined,
     onEvent: (ev) => {
       events.push(ev);
@@ -1415,8 +1418,8 @@ export function executeIBP(source: string, options: InterpreterOptions = {}): {
     },
   };
 
-  const tokens = tokenize(source);
-  const parser = new Parser(tokens, source);
+  const tokens = tokenize(processed);
+  const parser = new Parser(tokens, processed);
   const { program, errors } = parser.parse();
 
   if (errors.length > 0) {

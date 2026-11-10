@@ -113,5 +113,16 @@ describe('IBP Signature Features', () => {
     expect(events.some((e) => e.type === 'celebrate')).toBe(true);
     expect(events.some((e) => e.type === 'todo')).toBe(true);
   });
+
+  it('supports dynamic arithmetic calculation via compute, execute, and hisab', () => {
+    const code = `
+      say execute(10, "*", 5)
+      say hisab(100, "/", 4)
+      say compute(2, "^", 8)
+      say calculate(45, "-", 15)
+    `;
+    const { output } = executeIBP(code);
+    expect(output).toEqual(['50', '25', '256', '30']);
+  });
 });
 

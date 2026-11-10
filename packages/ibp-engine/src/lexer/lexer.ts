@@ -1,5 +1,6 @@
 import { Token, TokenType, SourceLocation, SourceSpan } from '../types/tokens';
 import { IBPError } from '../diagnostics/error';
+import { preprocessEasyFlow } from './preprocessor';
 
 const KEYWORDS: Record<string, TokenType> = {
   keep: TokenType.Keep,
@@ -505,7 +506,8 @@ export class Lexer {
 }
 
 export function tokenize(source: string): Token[] {
-  const lexer = new Lexer(source);
+  const processed = preprocessEasyFlow(source);
+  const lexer = new Lexer(processed);
   return lexer.tokenize();
 }
 

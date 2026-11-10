@@ -29,11 +29,21 @@ import {
   ShieldAlert,
   ArrowRight,
   FolderPlus,
+  Printer,
+  FileText,
+  FileDown,
+  TerminalSquare,
+  Package,
+  Hash,
+  ExternalLink,
+  Calculator,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { executeIBP } from '@ibp/engine';
 import { useVFSStore } from '../../stores/vfsStore';
 import { useDesktopStore } from '../../stores/desktopStore';
+import { printRulebookAsPDF, generateLanguageRulebookMarkdown } from './rulebookGenerator';
+import { generateIBPCompilerScript, generateVSCodePackageZip } from './compilerGenerator';
 
 export interface CustomFunctionSpec {
   id: string;
@@ -44,21 +54,44 @@ export interface CustomFunctionSpec {
 }
 
 export interface CustomSyntaxRules {
-  blockStyle: 'braces' | 'indent' | 'keywords';
-  blockStartKeyword: string;
-  blockEndKeyword: string;
+  // 1. Block Delimiters & Scoping
+  blockStyle: 'braces' | 'indent' | 'keywords' | 'parens' | 'brackets';
+  blockStartKeyword: string; // e.g. '{', 'do', 'begin', 'shuru', 'karo', ':'
+  blockEndKeyword: string;   // e.g. '}', 'end', 'bas', 'shesh', 'done'
+
+  // 2. Statements & Punctuation Signs
+  statementTerminator: 'none' | ';' | ';;' | '.' | 'newline';
+  statementTerminatorPolicy: 'optional' | 'strict' | 'forbidden';
   commaPolicy: 'optional' | 'forbidden' | 'strict';
-  variableDeclMode: 'keyword' | 'auto';
-  assignmentOperator: '=' | ':=' | '<-' | 'equals';
-  commentStyle: '#' | '//' | '--';
-  equalityOperator: '==' | '===' | 'is' | 'equals' | 'hobe';
-  inequalityOperator: '!=' | '<>' | 'isnt' | 'hobena';
-  andOperator: string;
-  orOperator: string;
-  notOperator: string;
-  pipeOperator: '|>' | '>>' | 'pipe';
+
+  // 3. Delimiter Signs for Calls, Lists & Groups
+  callDelimiterStyle: 'parens' | 'brackets' | 'angles' | 'spaces'; // () vs [] vs <> vs space
+  listDelimiterStyle: 'brackets' | 'angles' | 'braces'; // [1, 2] vs <1, 2> vs {1, 2}
+  memberAccessSign: '.' | '->' | '::'; // object.field vs object->field vs object::field
   stringDelimiter: '"' | "'" | 'both';
+  commentStyle: '#' | '//' | '--' | ';;';
+
+  // 4. Variables, Types & Assignment Signs
+  variableDeclMode: 'keyword' | 'auto';
   autoDeclareVariables: boolean;
+  assignmentOperator: '=' | ':=' | '<-' | '->' | 'equals' | 'is' | 'be';
+  typeAnnotationSign: 'none' | ':' | '::' | 'as'; // x: number vs x:: Int vs x as int
+
+  // 5. Operators & Logic Signs
+  equalityOperator: '==' | '===' | 'is' | 'equals' | 'hobe' | 'eq';
+  inequalityOperator: '!=' | '<>' | '!==' | 'isnt' | 'hobena' | 'neq';
+  andOperator: string; // 'and' | '&&' | '&' | 'aur' | 'ebong'
+  orOperator: string;  // 'or' | '||' | '|' | 'ya' | 'othoba'
+  notOperator: string; // 'not' | '!' | '~' | 'mat' | 'noy'
+  pipeOperator: 'none' | '|>' | '>>' | '->' | 'pipe';
+
+  // 6. Easy Calculator & Action Flow
+  easyFlowMode?: boolean;
+  chooseActionKeyword?: string; // e.g. 'inputchoose', 'choose', 'chuno', 'select'
+  inputNumberActionKeyword?: string; // e.g. 'input1', 'input', 'dalo', 'lo'
+  inputNumber2ActionKeyword?: string; // e.g. 'input2', 'dalo2', 'lo2'
+  computeActionKeyword?: string; // e.g. 'execute', 'compute', 'calculate', 'hisab'
+  outputActionKeyword?: string; // e.g. 'output', 'dikhao', 'show'
 }
 
 export interface TestCaseSpec {
@@ -109,6 +142,89 @@ export interface CustomLanguageSpec {
 }
 
 export const STARTER_TEMPLATES: Record<string, CustomLanguageSpec> = {
+  easycalc: {
+    name: 'EasyCalc Flow',
+    author: 'Human-First Labs',
+    description: 'Ultra-simplified calculator & action-flow language. No programming boilerplate: write inputchoose(+, -, *, /), input1(a), input2(b), execute(a (op) b), and output in plain human style.',
+    syntax: {
+      blockStyle: 'braces',
+      blockStartKeyword: '{',
+      blockEndKeyword: '}',
+      statementTerminator: 'none',
+      statementTerminatorPolicy: 'optional',
+      commaPolicy: 'optional',
+      callDelimiterStyle: 'parens',
+      listDelimiterStyle: 'brackets',
+      memberAccessSign: '.',
+      variableDeclMode: 'auto',
+      assignmentOperator: '=',
+      typeAnnotationSign: 'none',
+      commentStyle: '#',
+      equalityOperator: '==',
+      inequalityOperator: '!=',
+      andOperator: 'and',
+      orOperator: 'or',
+      notOperator: 'not',
+      pipeOperator: '|>',
+      stringDelimiter: 'both',
+      autoDeclareVariables: true,
+      easyFlowMode: true,
+      chooseActionKeyword: 'inputchoose',
+      inputNumberActionKeyword: 'input1',
+      inputNumber2ActionKeyword: 'input2',
+      computeActionKeyword: 'execute',
+      outputActionKeyword: 'output',
+    },
+    keywords: {
+      say: 'output',
+      shout: 'shout',
+      whisper: 'whisper',
+      ask: 'input',
+      keep: 'let',
+      lock: 'fixed',
+      when: 'if',
+      orwhen: 'else_if',
+      otherwise: 'else',
+      unless: 'unless',
+      repeat: 'repeat',
+      times: 'times',
+      count: 'count',
+      from: 'from',
+      to: 'to',
+      each: 'for_each',
+      in: 'in',
+      while: 'while',
+      recipe: 'action',
+      give: 'return',
+      yes: 'yes',
+      no: 'no',
+      empty: 'none',
+      celebrate: 'jashn',
+      check: 'verify',
+      attempt: 'try',
+      rescue: 'on_error',
+      todo: 'todo',
+    },
+    customFunctions: [
+      { id: 'ec1', name: 'square', params: 'x', body: 'x * x', description: 'Squares a number' },
+      { id: 'ec2', name: 'average', params: 'a, b', body: '(a + b) / 2', description: 'Computes average of two numbers' },
+    ],
+    testCases: [
+      { id: 'ect1', title: 'EasyCalc test', code: 'input1 = 20\ninput2 = 5\nexecute(input1 (/) input2) into ans\noutput ans', expectedOutput: '4' },
+    ],
+    sampleCode: `# EasyCalc Flow: Write a Calculator with Zero Hassle!
+# Choose your operator, input two numbers, and execute.
+
+inputchoose (/, *, +, -)
+
+input1(a)
+input2(b)
+
+execute(a (inputchoose) b) into result
+output "The calculated answer is:" result
+jashn
+`,
+  },
   hinglish_pro: {
     name: 'Hinglish Logic Pro',
     author: 'IBP Architect',
@@ -117,9 +233,15 @@ export const STARTER_TEMPLATES: Record<string, CustomLanguageSpec> = {
       blockStyle: 'keywords',
       blockStartKeyword: 'karo',
       blockEndKeyword: 'bas',
+      statementTerminator: 'none',
+      statementTerminatorPolicy: 'optional',
       commaPolicy: 'forbidden',
+      callDelimiterStyle: 'parens',
+      listDelimiterStyle: 'brackets',
+      memberAccessSign: '.',
       variableDeclMode: 'keyword',
       assignmentOperator: '=',
+      typeAnnotationSign: 'none',
       commentStyle: '#',
       equalityOperator: '==',
       inequalityOperator: '!=',
@@ -200,9 +322,15 @@ bolo "Sum of 10 and 20:" jodo(10 20)
       blockStyle: 'keywords',
       blockStartKeyword: 'shuru',
       blockEndKeyword: 'shesh',
+      statementTerminator: 'none',
+      statementTerminatorPolicy: 'optional',
       commaPolicy: 'forbidden',
+      callDelimiterStyle: 'parens',
+      listDelimiterStyle: 'brackets',
+      memberAccessSign: '.',
       variableDeclMode: 'keyword',
       assignmentOperator: '=',
+      typeAnnotationSign: 'none',
       commentStyle: '//',
       equalityOperator: 'hobe',
       inequalityOperator: 'hobena',
@@ -275,9 +403,15 @@ shesh
       blockStyle: 'indent',
       blockStartKeyword: ':',
       blockEndKeyword: '',
+      statementTerminator: 'none',
+      statementTerminatorPolicy: 'forbidden',
       commaPolicy: 'optional',
+      callDelimiterStyle: 'parens',
+      listDelimiterStyle: 'brackets',
+      memberAccessSign: '.',
       variableDeclMode: 'auto',
       assignmentOperator: '=',
+      typeAnnotationSign: 'none',
       commentStyle: '#',
       equalityOperator: '==',
       inequalityOperator: '!=',
@@ -353,9 +487,15 @@ print("Bonus points:", calc_bonus(score, 2))
       blockStyle: 'keywords',
       blockStartKeyword: 'do',
       blockEndKeyword: 'end',
+      statementTerminator: 'none',
+      statementTerminatorPolicy: 'optional',
       commaPolicy: 'optional',
+      callDelimiterStyle: 'parens',
+      listDelimiterStyle: 'brackets',
+      memberAccessSign: '.',
       variableDeclMode: 'auto',
       assignmentOperator: '=',
+      typeAnnotationSign: 'none',
       commentStyle: '#',
       equalityOperator: '==',
       inequalityOperator: '!=',
@@ -426,9 +566,15 @@ end
       blockStyle: 'braces',
       blockStartKeyword: '{',
       blockEndKeyword: '}',
+      statementTerminator: 'none',
+      statementTerminatorPolicy: 'optional',
       commaPolicy: 'optional',
+      callDelimiterStyle: 'parens',
+      listDelimiterStyle: 'brackets',
+      memberAccessSign: '.',
       variableDeclMode: 'keyword',
       assignmentOperator: '=',
+      typeAnnotationSign: 'none',
       commentStyle: '//',
       equalityOperator: 'is',
       inequalityOperator: 'isnt',
@@ -499,9 +645,15 @@ when_true treats >= 5 {
       blockStyle: 'braces',
       blockStartKeyword: '{',
       blockEndKeyword: '}',
+      statementTerminator: ';',
+      statementTerminatorPolicy: 'optional',
       commaPolicy: 'optional',
+      callDelimiterStyle: 'angles',
+      listDelimiterStyle: 'brackets',
+      memberAccessSign: '::',
       variableDeclMode: 'keyword',
-      assignmentOperator: '=',
+      assignmentOperator: ':=',
+      typeAnnotationSign: ':',
       commentStyle: '#',
       equalityOperator: '==',
       inequalityOperator: '!=',
@@ -547,96 +699,23 @@ when_true treats >= 5 {
       { id: 's2', name: 'newton_force', params: 'm, a', body: 'm * a', description: 'Force = mass * acceleration' },
     ],
     testCases: [
-      { id: 'st1', title: 'Force formula', code: 'sample f = newton_force(10, 5)\ndisplay f', expectedOutput: '50' },
+      { id: 'st1', title: 'Force formula', code: 'sample f := newton_force(10, 5);\ndisplay f;', expectedOutput: '50' },
     ],
     sampleCode: `# Science & Lab Notebook: Scientific calculation
-constant SPEED_OF_LIGHT = 299792458
-sample mass = 80
-sample velocity = 12
+constant SPEED_OF_LIGHT = 299792458;
+sample mass := 80;
+sample velocity := 12;
 
-display "Mass (kg):", mass
-display "Velocity (m/s):", velocity
-display "Kinetic Energy (J):", kinetic_energy(mass, velocity)
+display "Mass (kg):", mass;
+display "Velocity (m/s):", velocity;
+display "Kinetic Energy (J):", kinetic_energy(mass, velocity);
 
 observe velocity > 10 {
-  display "Target is in high-speed kinematic regime."
-  publish_discovery
+  display "Target is in high-speed kinematic regime.";
+  publish_discovery;
 } conclude {
-  display "Low velocity observation recorded."
+  display "Low velocity observation recorded.";
 }
-`,
-  },
-
-  emojiscript: {
-    name: 'EmojiScript',
-    author: 'Visual Coder',
-    description: 'Iconic emoji-driven visual language for playful visual thinking.',
-    syntax: {
-      blockStyle: 'braces',
-      blockStartKeyword: '{',
-      blockEndKeyword: '}',
-      commaPolicy: 'optional',
-      variableDeclMode: 'keyword',
-      assignmentOperator: '=',
-      commentStyle: '#',
-      equalityOperator: '==',
-      inequalityOperator: '!=',
-      andOperator: 'and',
-      orOperator: 'or',
-      notOperator: 'not',
-      pipeOperator: '|>',
-      stringDelimiter: 'both',
-      autoDeclareVariables: false,
-    },
-    keywords: {
-      say: '📢',
-      shout: '🔊',
-      whisper: '🤫',
-      ask: '❓_ask',
-      keep: '📦',
-      lock: '🔒',
-      when: '❓',
-      orwhen: '❔',
-      otherwise: '❌',
-      unless: '🚫',
-      repeat: '🔁',
-      times: '⏱️',
-      count: '🔢',
-      from: '▶️',
-      to: '🏁',
-      each: '👥',
-      in: '📥',
-      while: '🔄',
-      recipe: '📜',
-      give: '🎁',
-      yes: '✅',
-      no: '❎',
-      empty: '🕳️',
-      celebrate: '🎉',
-      check: '🎯',
-      attempt: '🧪',
-      rescue: '🩹',
-      todo: '📌',
-    },
-    customFunctions: [
-      { id: 'e1', name: 'spark', params: 'a, b', body: 'a + b', description: 'Combine two energies' },
-    ],
-    testCases: [
-      { id: 'et1', title: 'Emoji Spark', code: '📦 res = spark(10, 20)\n📢 res', expectedOutput: '30' },
-    ],
-    sampleCode: `📦 name = "Pixel"
-🔒 MAX_POWER = 100
-
-📢 "Hello {name}!"
-📢 "Energy Boost:", spark(40, 60)
-
-❓ MAX_POWER >= 100 {
-  📢 "System at Full Throttle!"
-} ❌ {
-  📢 "Charging..."
-}
-
-🎉
 `,
   },
 };
@@ -699,7 +778,7 @@ export function generateEBNFGrammar(spec: CustomLanguageSpec): string {
   return `(* =========================================================================
    Formal EBNF Grammar Specification for ${spec.name}
    Author: ${spec.author}
-   Block Style: ${syn.blockStyle} | Comma Policy: ${syn.commaPolicy}
+   Block Style: ${syn.blockStyle} | Statement Terminator: ${syn.statementTerminator}
    ========================================================================= *)
 
 Program
@@ -717,16 +796,16 @@ Statement
   | ExprStmt ;
 
 OutputStmt
-  = ("${kw.say}" | "${kw.shout}" | "${kw.whisper}") ExpressionList ;
+  = ("${kw.say}" | "${kw.shout}" | "${kw.whisper}") ExpressionList [ "${syn.statementTerminator !== 'none' ? syn.statementTerminator : ''}" ] ;
 
 InputStmt
-  = "${kw.ask}" [ "number" | "text" ] Expression [ "into" Identifier ] ;
+  = "${kw.ask}" [ "number" | "text" ] Expression [ "into" Identifier ] [ "${syn.statementTerminator !== 'none' ? syn.statementTerminator : ''}" ] ;
 
 VarDeclStmt
-  = ("${kw.keep}" | "${kw.lock}") Identifier "${syn.assignmentOperator}" Expression ;
+  = ("${kw.keep}" | "${kw.lock}") Identifier "${syn.assignmentOperator}" Expression [ "${syn.statementTerminator !== 'none' ? syn.statementTerminator : ''}" ] ;
 
 AssignStmt
-  = Identifier "${syn.assignmentOperator}" Expression ;
+  = Identifier "${syn.assignmentOperator}" Expression [ "${syn.statementTerminator !== 'none' ? syn.statementTerminator : ''}" ] ;
 
 ConditionStmt
   = "${kw.when}" Expression Block
@@ -789,6 +868,7 @@ export const LangCraftApp: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [savedToVFS, setSavedToVFS] = useState(false);
   const [projectCreatedMsg, setProjectCreatedMsg] = useState<string | null>(null);
+  const [isZipping, setIsZipping] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
     'editor' | 'syntax' | 'keywords' | 'functions' | 'grammar' | 'tests' | 'export'
@@ -869,20 +949,126 @@ export const LangCraftApp: React.FC = () => {
   // Compile / Transpile custom language into canonical IBP
   const compileCustomCode = (source: string): string => {
     let code = source;
+    const syn = langSpec.syntax;
+    const kw = langSpec.keywords;
+
+    // 0. Easy Action & Calculator Flow Normalization
+    const chooseKw = (syn.chooseActionKeyword || 'inputchoose').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const input1Kw = (syn.inputNumberActionKeyword || 'input1').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const input2Kw = (syn.inputNumber2ActionKeyword || 'input2').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const computeKw = (syn.computeActionKeyword || 'execute').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const outputKw = (syn.outputActionKeyword || 'output').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // 0A. Choose action: inputchoose (/,*,+,-) or choose op (+, -, *, /) or chuno op (+, -, *, /)
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${chooseKw}|inputchoose|choose|chuno|select)\\s+([a-zA-Z0-9_]+)\\s*(?:from)?\\s*\\(([^)]+)\\)`, 'gmi'),
+      (match, indent, varName, options) => {
+        return `${indent}ask "Choose operation (${options.trim()}):" into ${varName}`;
+      }
+    );
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${chooseKw}|inputchoose|choose|chuno|select)\\s*\\(([^)]+)\\)`, 'gmi'),
+      (match, indent, options) => {
+        return `${indent}ask "Choose operation (${options.trim()}):" into inputchoice`;
+      }
+    );
+
+    // 0B. Input1 action: input1(number2) or input1(a) or input1 or dalo a or lo a
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${input1Kw}|input1|dalo1|ask1)\\s*\\(\\s*([a-zA-Z0-9_]*)\\s*\\)`, 'gmi'),
+      (match, indent, varName) => {
+        const dest = varName.trim() || 'input1';
+        return `${indent}ask number "Enter first number:" into ${dest}`;
+      }
+    );
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${input1Kw}|input1|dalo1|ask1)\\s*$`, 'gmi'),
+      (match, indent) => `${indent}ask number "Enter first number:" into input1`
+    );
+    code = code.replace(
+      /^(\s*)(?:dalo|lo)\s+([a-zA-Z0-9_]+)\s*$/gmi,
+      (match, indent, varName) => `${indent}ask number "Enter value for ${varName}:" into ${varName}`
+    );
+
+    // 0C. Input2 action: input2(number2) or input2(b) or input2
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${input2Kw}|input2|dalo2|ask2)\\s*\\(\\s*([a-zA-Z0-9_]*)\\s*\\)`, 'gmi'),
+      (match, indent, varName) => {
+        const dest = varName.trim() || 'input2';
+        return `${indent}ask number "Enter second number:" into ${dest}`;
+      }
+    );
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${input2Kw}|input2|dalo2|ask2)\\s*$`, 'gmi'),
+      (match, indent) => `${indent}ask number "Enter second number:" into input2`
+    );
+
+    // 0D. Dynamic execute / compute / hisab:
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${computeKw}|execute|compute|calculate|hisab)\\s*\\(\\s*([a-zA-Z0-9_]+)\\s*\\(\\s*([a-zA-Z0-9_]+)\\s*\\)\\s*([a-zA-Z0-9_]+)\\s*\\)(?:\\s+into\\s+([a-zA-Z0-9_]+))?`, 'gmi'),
+      (match, indent, op1, opName, op2, intoVar) => {
+        const dest = intoVar ? intoVar.trim() : 'result';
+        const actualOp1 = op1 === 'input' ? 'input1' : op1;
+        return `${indent}keep ${dest} = execute(${actualOp1}, ${opName}, ${op2})`;
+      }
+    );
+
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${computeKw}|execute|compute|calculate|hisab)\\s*\\(\\s*([a-zA-Z0-9_]+)\\s*,\\s*([a-zA-Z0-9_]+)\\s*,\\s*([a-zA-Z0-9_]+)\\s*\\)(?:\\s+into\\s+([a-zA-Z0-9_]+))?`, 'gmi'),
+      (match, indent, op1, opName, op2, intoVar) => {
+        const dest = intoVar ? intoVar.trim() : 'result';
+        const actualOp1 = op1 === 'input' ? 'input1' : op1;
+        return `${indent}keep ${dest} = execute(${actualOp1}, ${opName}, ${op2})`;
+      }
+    );
+
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${computeKw}|execute|compute|calculate|hisab)\\s+([a-zA-Z0-9_]+)\\s*=\\s*([a-zA-Z0-9_]+)\\s*\\(\\s*([a-zA-Z0-9_]+)\\s*\\)\\s*([a-zA-Z0-9_]+)`, 'gmi'),
+      (match, indent, dest, op1, opName, op2) => {
+        const actualOp1 = op1 === 'input' ? 'input1' : op1;
+        return `${indent}keep ${dest} = execute(${actualOp1}, ${opName}, ${op2})`;
+      }
+    );
+
+    code = code.replace(
+      new RegExp(`(?:${computeKw}|execute|compute|calculate|hisab)\\s*\\(\\s*([a-zA-Z0-9_]+)\\s*\\(\\s*([a-zA-Z0-9_]+)\\s*\\)\\s*([a-zA-Z0-9_]+)\\s*\\)`, 'gi'),
+      (match, op1, opName, op2) => {
+        const actualOp1 = op1 === 'input' ? 'input1' : op1;
+        return `execute(${actualOp1}, ${opName}, ${op2})`;
+      }
+    );
+
+    // 0E. Output action: output, output result, output "Ans is:", res, dikhao ...
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${outputKw}|output|dikhao)\\s*$`, 'gmi'),
+      (match, indent) => `${indent}say result`
+    );
+    code = code.replace(
+      new RegExp(`^(\\s*)(?:${outputKw}|output|dikhao)\\s+(.+)$`, 'gmi'),
+      (match, indent, rest) => `${indent}say ${rest}`
+    );
 
     // 1. Comment Normalization
-    if (langSpec.syntax.commentStyle === '//') {
+    if (syn.commentStyle === '//') {
       code = code.replace(/\/\/(.*)$/gm, '#$1');
-    } else if (langSpec.syntax.commentStyle === '--') {
+    } else if (syn.commentStyle === '--') {
       code = code.replace(/--(.*)$/gm, '#$1');
+    } else if (syn.commentStyle === ';;') {
+      code = code.replace(/;;(.*)$/gm, '#$1');
     }
 
-    // 2. Block Style Transformation
-    if (langSpec.syntax.blockStyle === 'indent') {
+    // 2. Statement Terminator Stripping (e.g. trailing ; or ;;)
+    if (syn.statementTerminator && syn.statementTerminator !== 'none') {
+      const termEsc = syn.statementTerminator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      code = code.replace(new RegExp(termEsc + '\\s*$', 'gm'), '');
+    }
+
+    // 3. Block Style Transformation
+    if (syn.blockStyle === 'indent') {
       code = convertIndentationToBraces(code);
-    } else if (langSpec.syntax.blockStyle === 'keywords') {
-      const startKw = langSpec.syntax.blockStartKeyword;
-      const endKw = langSpec.syntax.blockEndKeyword;
+    } else if (syn.blockStyle === 'keywords') {
+      const startKw = syn.blockStartKeyword;
+      const endKw = syn.blockEndKeyword;
       if (startKw) {
         const regexStart = new RegExp(`\\b${startKw}\\b`, 'g');
         code = code.replace(regexStart, '{');
@@ -893,58 +1079,70 @@ export const LangCraftApp: React.FC = () => {
       }
     }
 
-    // 3. String Delimiter Normalization (if single quotes allowed)
-    if (langSpec.syntax.stringDelimiter === "'" || langSpec.syntax.stringDelimiter === 'both') {
-      // Normalize '...' into "..." while respecting internal escaped quotes
+    // 4. String Delimiter Normalization
+    if (syn.stringDelimiter === "'" || syn.stringDelimiter === 'both') {
       code = code.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, (match, inner) => {
         const escaped = inner.replace(/"/g, '\\"');
         return `"${escaped}"`;
       });
     }
 
-    // 4. Comma Policy (Zero commas allowed / space-separated)
-    if (langSpec.syntax.commaPolicy === 'forbidden') {
-      // Replace whitespace-separated arguments inside call parentheses like fn(a b) -> fn(a, b)
+    // 5. Call Delimiters & List Delimiters (<1, 2> -> [1, 2], fn <a, b> -> fn(a, b))
+    if (syn.callDelimiterStyle === 'angles') {
+      code = code.replace(/([a-zA-Z0-9_]+)\s*<([^>]+)>/g, '$1($2)');
+    } else if (syn.callDelimiterStyle === 'brackets') {
+      code = code.replace(/([a-zA-Z0-9_]+)\s*\[([^\]]+)\]/g, '$1($2)');
+    }
+
+    if (syn.listDelimiterStyle === 'angles') {
+      code = code.replace(/<([^>]+)>/g, '[$1]');
+    }
+
+    // Member access sign (e.g. -> to .)
+    if (syn.memberAccessSign === '->') {
+      code = code.replace(/([a-zA-Z0-9_]+)->([a-zA-Z0-9_]+)/g, '$1.$2');
+    }
+
+    // 6. Comma Policy (Zero commas allowed / space-separated)
+    if (syn.commaPolicy === 'forbidden') {
       code = code.replace(/\(([a-zA-Z0-9_"\.\s]+)\)/g, (match, inner) => {
         const tokens = inner.trim().split(/\s+/).filter(Boolean);
         return `(${tokens.join(', ')})`;
       });
-      // Replace whitespace inside bracketed lists [1 2 3] -> [1, 2, 3]
       code = code.replace(/\[([a-zA-Z0-9_"\.\s]+)\]/g, (match, inner) => {
         const tokens = inner.trim().split(/\s+/).filter(Boolean);
         return `[${tokens.join(', ')}]`;
       });
-      // Replace say statements with multiple space-delimited string/idents
       code = code.replace(/^(\s*(?:say|bolo|display|print|puts|show|📢)[^\n]+)$/gm, (line) => {
         return line.replace(/("[^"]*")\s+([a-zA-Z0-9_"])/g, '$1, $2');
       });
     }
 
-    // 5. Operator Normalization
-    if (langSpec.syntax.assignmentOperator !== '=') {
-      const opEsc = langSpec.syntax.assignmentOperator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // 7. Operator Normalization
+    if (syn.assignmentOperator !== '=') {
+      const opEsc = syn.assignmentOperator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       code = code.replace(new RegExp(opEsc, 'g'), '=');
     }
 
-    if (langSpec.syntax.equalityOperator !== '==') {
-      code = code.replace(new RegExp(`\\b${langSpec.syntax.equalityOperator}\\b`, 'g'), '==');
+    if (syn.equalityOperator !== '==') {
+      code = code.replace(new RegExp(`\\b${syn.equalityOperator}\\b`, 'g'), '==');
     }
-    if (langSpec.syntax.inequalityOperator !== '!=') {
-      code = code.replace(new RegExp(`\\b${langSpec.syntax.inequalityOperator}\\b`, 'g'), '!=');
+    if (syn.inequalityOperator !== '!=') {
+      code = code.replace(new RegExp(`\\b${syn.inequalityOperator}\\b`, 'g'), '!=');
     }
-    if (langSpec.syntax.andOperator !== 'and') {
-      code = code.replace(new RegExp(`\\b${langSpec.syntax.andOperator}\\b`, 'g'), 'and');
+    if (syn.andOperator !== 'and') {
+      code = code.replace(new RegExp(`\\b${syn.andOperator}\\b`, 'g'), 'and');
     }
-    if (langSpec.syntax.orOperator !== 'or') {
-      code = code.replace(new RegExp(`\\b${langSpec.syntax.orOperator}\\b`, 'g'), 'or');
+    if (syn.orOperator !== 'or') {
+      code = code.replace(new RegExp(`\\b${syn.orOperator}\\b`, 'g'), 'or');
     }
-    if (langSpec.syntax.notOperator !== 'not') {
-      code = code.replace(new RegExp(`\\b${langSpec.syntax.notOperator}\\b`, 'g'), 'not');
+    if (syn.notOperator !== 'not') {
+      code = code.replace(new RegExp(`\\b${syn.notOperator}\\b`, 'g'), 'not');
     }
 
     // Pipe operator: x |> fn() -> fn(x)
-    if (langSpec.syntax.pipeOperator) {
-      const pipeEsc = langSpec.syntax.pipeOperator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (syn.pipeOperator && syn.pipeOperator !== 'none') {
+      const pipeEsc = syn.pipeOperator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       code = code.replace(
         new RegExp(`([a-zA-Z0-9_]+)\\s*${pipeEsc}\\s*([a-zA-Z0-9_]+)\\s*\\(([^)]*)\\)`, 'g'),
         (match, val, fn, args) => {
@@ -953,8 +1151,8 @@ export const LangCraftApp: React.FC = () => {
       );
     }
 
-    // 6. Keyword Vocabulary Translation
-    const mapping = Object.entries(langSpec.keywords);
+    // 8. Keyword Vocabulary Translation
+    const mapping = Object.entries(kw);
     mapping.sort((a, b) => b[1].length - a[1].length);
 
     for (const [canonical, customWord] of mapping) {
@@ -965,17 +1163,15 @@ export const LangCraftApp: React.FC = () => {
       code = code.replace(regex, canonical);
     }
 
-    // 7. Automatic Variable Declaration if enabled
-    if (langSpec.syntax.variableDeclMode === 'auto' || langSpec.syntax.autoDeclareVariables) {
-      // Find lines that start with `identifier = value` without keep/lock
+    // 9. Automatic Variable Declaration if enabled
+    if (syn.variableDeclMode === 'auto' || syn.autoDeclareVariables) {
       code = code.replace(/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^=].*)$/gm, (match, indent, name, value) => {
-        // Skip keywords or special headers
-        if (['when', 'orwhen', 'while', 'if', 'return', 'give'].includes(name)) return match;
+        if (['when', 'orwhen', 'while', 'if', 'return', 'give', 'def', 'recipe'].includes(name)) return match;
         return `${indent}keep ${name} = ${value}`;
       });
     }
 
-    // 8. Inject Custom Logic Functions at the top
+    // 10. Inject Custom Logic Functions at the top
     let injectedHeader = '';
     if (langSpec.customFunctions.length > 0) {
       injectedHeader += `# --- Standard Library for ${langSpec.name} ---\n`;
@@ -1046,6 +1242,53 @@ export const LangCraftApp: React.FC = () => {
     setIsRunningTests(false);
   };
 
+  // Export: PDF Rulebook
+  const handlePrintPDF = () => {
+    printRulebookAsPDF(langSpec);
+  };
+
+  // Export: Markdown Rulebook
+  const handleDownloadMarkdown = () => {
+    const md = generateLanguageRulebookMarkdown(langSpec);
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${langSpec.name.toLowerCase().replace(/\s+/g, '_')}_rulebook.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Export: Standalone ibpcompiler.js CLI
+  const handleDownloadCompiler = () => {
+    const script = generateIBPCompilerScript(langSpec);
+    const blob = new Blob([script], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ibpcompiler.js';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Export: VS Code Starter Kit (.zip)
+  const handleDownloadVSCodeKit = async () => {
+    try {
+      setIsZipping(true);
+      const zipBlob = await generateVSCodePackageZip(langSpec);
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${langSpec.name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}_vscode_kit.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Error creating VS Code package: ' + String(e));
+    } finally {
+      setIsZipping(false);
+    }
+  };
+
   const handleCopySpec = () => {
     navigator.clipboard.writeText(JSON.stringify(langSpec, null, 2));
     setCopied(true);
@@ -1064,7 +1307,7 @@ export const LangCraftApp: React.FC = () => {
 
   const handleSaveToVFS = async () => {
     try {
-      const fileName = `${langSpec.name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}.json`;
+      const fileName = `${langSpec.name.toLowerCase().replace(/[^a-z0-9_]/g, '_')}.lang.json`;
       const path = `IBP://USERS/guest/languages/${fileName}`;
       await createFile(path, JSON.stringify(langSpec, null, 2));
       setSavedToVFS(true);
@@ -1079,9 +1322,11 @@ export const LangCraftApp: React.FC = () => {
       const projSlug = langSpec.name.toLowerCase().replace(/[^a-z0-9_]/g, '_');
       const transpiled = compileCustomCode(customCode);
       const codePath = `IBP://USERS/guest/projects/${projSlug}_demo/main.ibp`;
-      const specPath = `IBP://USERS/guest/languages/${projSlug}.json`;
+      const sourcePath = `IBP://USERS/guest/projects/${projSlug}_demo/main.${projSlug}`;
+      const specPath = `IBP://USERS/guest/languages/${projSlug}.lang.json`;
 
       await createFile(specPath, JSON.stringify(langSpec, null, 2));
+      await createFile(sourcePath, customCode);
       await createFile(codePath, transpiled);
 
       setProjectCreatedMsg(`Created project at ${codePath}! Opening Studio...`);
@@ -1091,6 +1336,18 @@ export const LangCraftApp: React.FC = () => {
       }, 1500);
     } catch (e) {
       alert('Failed to create Studio project: ' + String(e));
+    }
+  };
+
+  const handleRunInTerminal = async () => {
+    try {
+      const projSlug = langSpec.name.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      const transpiled = compileCustomCode(customCode);
+      const codePath = `IBP://USERS/guest/projects/${projSlug}_demo/main.ibp`;
+      await createFile(codePath, transpiled);
+      openWindow('terminal');
+    } catch (e) {
+      alert('Failed to launch Terminal: ' + String(e));
     }
   };
 
@@ -1138,11 +1395,11 @@ export const LangCraftApp: React.FC = () => {
                     : 'bg-purple-950/80 text-purple-300 border-purple-800/60'
                 }`}
               >
-                Language Architecture Suite
+                Full-Stack Language & Logic Engine
               </span>
             </h1>
             <p className={isLight ? 'text-slate-500 text-[10px]' : 'text-slate-400 text-[10px]'}>
-              Design custom programming languages, syntax paradigms, logic rules & verified standard libraries
+              Design custom syntax, punctuations, logic rules & export standalone CLI compilers with printable PDF rulebooks
             </p>
           </div>
         </div>
@@ -1210,7 +1467,7 @@ export const LangCraftApp: React.FC = () => {
             }`}
           >
             <Sliders size={14} />
-            <span>Logic & Grammar</span>
+            <span>Logic & Grammar Rules</span>
           </button>
 
           <button
@@ -1226,7 +1483,7 @@ export const LangCraftApp: React.FC = () => {
             }`}
           >
             <Settings2 size={14} />
-            <span>Keywords ({Object.keys(langSpec.keywords).length})</span>
+            <span>Keywords & Vocabulary</span>
           </button>
 
           <button
@@ -1290,7 +1547,7 @@ export const LangCraftApp: React.FC = () => {
             }`}
           >
             <Download size={14} />
-            <span>Export & VFS</span>
+            <span>Export & Rulebook</span>
           </button>
         </div>
 
@@ -1329,8 +1586,7 @@ export const LangCraftApp: React.FC = () => {
                     {langSpec.name} Source
                   </span>
                   <span className={isLight ? 'text-slate-500 text-[10px]' : 'text-slate-500 text-[10px]'}>
-                    (Blocks: {langSpec.syntax.blockStyle} | Commas: {langSpec.syntax.commaPolicy} | Quotes:{' '}
-                    {langSpec.syntax.stringDelimiter})
+                    (Blocks: {langSpec.syntax.blockStyle} | Separator: {langSpec.syntax.statementTerminator} | Commas: {langSpec.syntax.commaPolicy})
                   </span>
                 </div>
                 <button
@@ -1504,39 +1760,41 @@ export const LangCraftApp: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: LOGIC & GRAMMAR RULES */}
+        {/* TAB 2: LOGIC & GRAMMAR RULES (DEEP CUSTOMIZATION ENGINE) */}
         {activeTab === 'syntax' && (
-          <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 max-w-5xl mx-auto space-y-6">
             <div className={`border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <h2 className="text-base font-bold flex items-center space-x-2">
                 <Sliders size={18} className="text-purple-500" />
                 <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>
-                  Custom Logic & Syntax Rules
+                  Custom Logic, Syntax & Punctuation Rules Engine
                 </span>
               </h2>
               <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                Configure structural semantics: block structure, comma strictness, assignment operators, string quotation rules, and logic delimiters.
+                Fine-tune every structural sign, bracket, delimiter, terminator, and operator in {langSpec.name} from scratch.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Block Style */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* 1. Block Delimiters & Scoping */}
               <div
-                className={`p-4 border rounded-xl space-y-3 shadow-sm ${
+                className={`p-5 border rounded-2xl space-y-3 shadow-sm ${
                   isLight ? 'bg-white border-slate-200' : 'bg-slate-900/70 border-slate-800'
                 }`}
               >
                 <div className="flex items-center space-x-2 font-bold">
                   <Braces size={16} className="text-sky-500" />
-                  <span className={isLight ? 'text-slate-800' : 'text-slate-200'}>Block Delimiter Logic</span>
+                  <span className={isLight ? 'text-slate-900 font-bold' : 'text-slate-200'}>
+                    1. Block Delimiter & Nesting Signs
+                  </span>
                 </div>
                 <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                  How code blocks and nesting scope are defined:
+                  Choose how code blocks and nested statements are opened and closed:
                 </p>
 
                 <div className="space-y-2">
                   <label
-                    className={`flex items-center space-x-2 p-2.5 rounded-lg border cursor-pointer transition ${
+                    className={`flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer transition ${
                       isLight ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-slate-950/50 border-slate-800'
                     }`}
                   >
@@ -1551,12 +1809,12 @@ export const LangCraftApp: React.FC = () => {
                       <span className={`font-semibold block ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
                         Curly Braces {'{ ... }'}
                       </span>
-                      <span className="text-[10px] text-slate-500">Traditional C/JavaScript/Rust style blocks</span>
+                      <span className="text-[10px] text-slate-500">C, C++, Rust, JavaScript standard</span>
                     </div>
                   </label>
 
                   <label
-                    className={`flex items-center space-x-2 p-2.5 rounded-lg border cursor-pointer transition ${
+                    className={`flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer transition ${
                       isLight ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-slate-950/50 border-slate-800'
                     }`}
                   >
@@ -1569,14 +1827,14 @@ export const LangCraftApp: React.FC = () => {
                     />
                     <div className="text-xs">
                       <span className={`font-semibold block ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
-                        Indentation with Colons (Pythonic)
+                        Colons with Indentation {': ...'}
                       </span>
-                      <span className="text-[10px] text-slate-500">Blocks start with ':' and use whitespace indent (no braces)</span>
+                      <span className="text-[10px] text-slate-500">Pythonic whitespace nesting (no closing symbol required)</span>
                     </div>
                   </label>
 
                   <label
-                    className={`flex items-center space-x-2 p-2.5 rounded-lg border cursor-pointer transition ${
+                    className={`flex items-center space-x-2 p-2.5 rounded-xl border cursor-pointer transition ${
                       isLight ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-slate-950/50 border-slate-800'
                     }`}
                   >
@@ -1589,9 +1847,9 @@ export const LangCraftApp: React.FC = () => {
                     />
                     <div className="text-xs">
                       <span className={`font-semibold block ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
-                        Word Keyword Pairs
+                        Word Enclosing Keywords
                       </span>
-                      <span className="text-[10px] text-slate-500">e.g. karo...bas, shuru...shesh, begin...end, do...end</span>
+                      <span className="text-[10px] text-slate-500">e.g. karo...bas, begin...end, shuru...shesh, do...end</span>
                     </div>
                   </label>
                 </div>
@@ -1603,8 +1861,8 @@ export const LangCraftApp: React.FC = () => {
                     }`}
                   >
                     <div>
-                      <span className={`text-[10px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                        Start Word
+                      <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        Start Keyword
                       </span>
                       <input
                         type="text"
@@ -1615,12 +1873,12 @@ export const LangCraftApp: React.FC = () => {
                             ? 'bg-white border-slate-300 text-slate-800'
                             : 'bg-slate-950 border-slate-700 text-sky-300'
                         }`}
-                        placeholder="e.g. karo, begin"
+                        placeholder="e.g. karo, begin, shuru"
                       />
                     </div>
                     <div>
-                      <span className={`text-[10px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                        End Word
+                      <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        Closing Keyword
                       </span>
                       <input
                         type="text"
@@ -1631,252 +1889,401 @@ export const LangCraftApp: React.FC = () => {
                             ? 'bg-white border-slate-300 text-slate-800'
                             : 'bg-slate-950 border-slate-700 text-purple-300'
                         }`}
-                        placeholder="e.g. bas, end"
+                        placeholder="e.g. bas, end, shesh"
                       />
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Comma Policy */}
+              {/* 2. Statement Terminators & Commas */}
               <div
-                className={`p-4 border rounded-xl space-y-3 shadow-sm ${
+                className={`p-5 border rounded-2xl space-y-3 shadow-sm ${
                   isLight ? 'bg-white border-slate-200' : 'bg-slate-900/70 border-slate-800'
                 }`}
               >
                 <div className="flex items-center space-x-2 font-bold">
-                  <Sliders size={16} className="text-emerald-500" />
-                  <span className={isLight ? 'text-slate-800' : 'text-slate-200'}>Comma Syntax Policy</span>
-                </div>
-                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                  Decide if lists and arguments require commas or allow pure whitespace:
-                </p>
-
-                <div className="space-y-2">
-                  <label
-                    className={`flex items-center space-x-2 p-2.5 rounded-lg border cursor-pointer transition ${
-                      isLight ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-slate-950/50 border-slate-800'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="commaPolicy"
-                      checked={langSpec.syntax.commaPolicy === 'forbidden'}
-                      onChange={() => handleUpdateSyntax('commaPolicy', 'forbidden')}
-                      className="text-purple-600 focus:ring-purple-500"
-                    />
-                    <div className="text-xs">
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 block">
-                        Zero Commas (Space-Separated)
-                      </span>
-                      <span className="text-[10px] text-slate-500">Clean arguments like [1 2 3] and fn(x y), no commas needed!</span>
-                    </div>
-                  </label>
-
-                  <label
-                    className={`flex items-center space-x-2 p-2.5 rounded-lg border cursor-pointer transition ${
-                      isLight ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-slate-950/50 border-slate-800'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="commaPolicy"
-                      checked={langSpec.syntax.commaPolicy === 'optional'}
-                      onChange={() => handleUpdateSyntax('commaPolicy', 'optional')}
-                      className="text-purple-600 focus:ring-purple-500"
-                    />
-                    <div className="text-xs">
-                      <span className={`font-semibold block ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
-                        Optional Commas
-                      </span>
-                      <span className="text-[10px] text-slate-500">User can include commas or omit them freely</span>
-                    </div>
-                  </label>
-
-                  <label
-                    className={`flex items-center space-x-2 p-2.5 rounded-lg border cursor-pointer transition ${
-                      isLight ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' : 'bg-slate-950/50 border-slate-800'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="commaPolicy"
-                      checked={langSpec.syntax.commaPolicy === 'strict'}
-                      onChange={() => handleUpdateSyntax('commaPolicy', 'strict')}
-                      className="text-purple-600 focus:ring-purple-500"
-                    />
-                    <div className="text-xs">
-                      <span className={`font-semibold block ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
-                        Strict Commas
-                      </span>
-                      <span className="text-[10px] text-slate-500">Commas mandatory between parameters and collection items</span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Assignment Operator & Auto-Declaration */}
-              <div
-                className={`p-4 border rounded-xl space-y-3 shadow-sm ${
-                  isLight ? 'bg-white border-slate-200' : 'bg-slate-900/70 border-slate-800'
-                }`}
-              >
-                <div className="flex items-center space-x-2 font-bold">
-                  <Activity size={16} className="text-amber-500" />
-                  <span className={isLight ? 'text-slate-800' : 'text-slate-200'}>
-                    Variable Declaration & Assignment
+                  <Hash size={16} className="text-emerald-500" />
+                  <span className={isLight ? 'text-slate-900 font-bold' : 'text-slate-200'}>
+                    2. Statement Terminators & Punctuation
                   </span>
                 </div>
+                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Configure semicolons, commas, and line ending strictness:
+                </p>
 
                 <div className="space-y-3">
                   <div>
-                    <span className={`text-[11px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      Variable Declaration Mode:
+                    <span className={`text-[11px] block mb-1 font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      Statement Terminator Sign:
                     </span>
                     <select
-                      value={langSpec.syntax.variableDeclMode}
-                      onChange={(e) => handleUpdateSyntax('variableDeclMode', e.target.value as any)}
-                      className={`w-full px-2.5 py-1.5 border rounded-lg text-xs font-mono ${
-                        isLight
-                          ? 'bg-slate-50 border-slate-300 text-slate-800'
-                          : 'bg-slate-950 border-slate-700 text-sky-300'
+                      value={langSpec.syntax.statementTerminator}
+                      onChange={(e) => handleUpdateSyntax('statementTerminator', e.target.value as any)}
+                      className={`w-full px-2.5 py-1.5 border rounded-xl text-xs font-mono ${
+                        isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
                       }`}
                     >
-                      <option value="keyword">Keyword-driven (requires 'keep', 'let', 'rakho', etc.)</option>
-                      <option value="auto">Auto-declaration (e.g. x = 10 automatically declares variable)</option>
+                      <option value="none">None (Natural Newlines, like Python & Go)</option>
+                      <option value=";">Semicolon (;) - Traditional C/Java/C# style</option>
+                      <option value=";;">Double Semicolon (;;) - OCaml / F# style</option>
+                      <option value=".">Period (.) - COBOL / Smalltalk style</option>
                     </select>
                   </div>
 
                   <div>
-                    <span className={`text-[11px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                    <span className={`text-[11px] block mb-1 font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      Comma Syntax Policy:
+                    </span>
+                    <select
+                      value={langSpec.syntax.commaPolicy}
+                      onChange={(e) => handleUpdateSyntax('commaPolicy', e.target.value as any)}
+                      className={`w-full px-2.5 py-1.5 border rounded-xl text-xs font-mono ${
+                        isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
+                      }`}
+                    >
+                      <option value="forbidden">Zero Commas (Pure whitespace lists [1 2 3] and fn(x y))</option>
+                      <option value="optional">Optional Commas (Users can include or omit commas freely)</option>
+                      <option value="strict">Strict Commas (Commas required between arguments & collections)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <span className={`text-[11px] block mb-1 font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      Comment Sign Style:
+                    </span>
+                    <select
+                      value={langSpec.syntax.commentStyle}
+                      onChange={(e) => handleUpdateSyntax('commentStyle', e.target.value as any)}
+                      className={`w-full px-2.5 py-1.5 border rounded-xl text-xs font-mono ${
+                        isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
+                      }`}
+                    >
+                      <option value="#"># (Hash / Shell / Python)</option>
+                      <option value="//">// (Double Slash / JS / Rust / Go)</option>
+                      <option value="--">-- (Double Dash / SQL / Lua / Haskell)</option>
+                      <option value=";;">;; (Double Semicolon / Lisp / Scheme)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Call Delimiters, List Signs & Quotes */}
+              <div
+                className={`p-5 border rounded-2xl space-y-3 shadow-sm ${
+                  isLight ? 'bg-white border-slate-200' : 'bg-slate-900/70 border-slate-800'
+                }`}
+              >
+                <div className="flex items-center space-x-2 font-bold">
+                  <Quote size={16} className="text-amber-500" />
+                  <span className={isLight ? 'text-slate-900 font-bold' : 'text-slate-200'}>
+                    3. Call Signs, Brackets & String Delimiters
+                  </span>
+                </div>
+                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Customize function wrapping signs, brackets, and quotes:
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Call Wrapping:
+                    </span>
+                    <select
+                      value={langSpec.syntax.callDelimiterStyle || 'parens'}
+                      onChange={(e) => handleUpdateSyntax('callDelimiterStyle', e.target.value as any)}
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
+                        isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
+                      }`}
+                    >
+                      <option value="parens">fn(x, y) - Parentheses</option>
+                      <option value="brackets">fn[x, y] - Square Brackets</option>
+                      <option value="angles">fn &lt;x, y&gt; - Angle Brackets</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Collection / Array Sign:
+                    </span>
+                    <select
+                      value={langSpec.syntax.listDelimiterStyle || 'brackets'}
+                      onChange={(e) => handleUpdateSyntax('listDelimiterStyle', e.target.value as any)}
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
+                        isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
+                      }`}
+                    >
+                      <option value="brackets">[1, 2, 3] - Brackets</option>
+                      <option value="angles">&lt;1, 2, 3&gt; - Angles</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      String Quotes Sign:
+                    </span>
+                    <select
+                      value={langSpec.syntax.stringDelimiter}
+                      onChange={(e) => handleUpdateSyntax('stringDelimiter', e.target.value as any)}
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
+                        isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
+                      }`}
+                    >
+                      <option value="both">Both ("...") and ('...')</option>
+                      <option value={'"'}>Double Quotes Only ("...")</option>
+                      <option value={"'"}>Single Quotes Only ('...')</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Property Access Sign:
+                    </span>
+                    <select
+                      value={langSpec.syntax.memberAccessSign || '.'}
+                      onChange={(e) => handleUpdateSyntax('memberAccessSign', e.target.value as any)}
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
+                        isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
+                      }`}
+                    >
+                      <option value=".">. (Dot: object.field)</option>
+                      <option value="->">-&gt; (Arrow: object-&gt;field)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Assignment, Variables & Operators */}
+              <div
+                className={`p-5 border rounded-2xl space-y-3 shadow-sm ${
+                  isLight ? 'bg-white border-slate-200' : 'bg-slate-900/70 border-slate-800'
+                }`}
+              >
+                <div className="flex items-center space-x-2 font-bold">
+                  <Activity size={16} className="text-purple-500" />
+                  <span className={isLight ? 'text-slate-900 font-bold' : 'text-slate-200'}>
+                    4. Assignment, Variables & Logic Signs
+                  </span>
+                </div>
+                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Configure assignment operators, equality comparisons, and boolean logic:
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                       Assignment Operator:
                     </span>
                     <select
                       value={langSpec.syntax.assignmentOperator}
                       onChange={(e) => handleUpdateSyntax('assignmentOperator', e.target.value as any)}
-                      className={`w-full px-2.5 py-1.5 border rounded-lg text-xs font-mono ${
-                        isLight
-                          ? 'bg-slate-50 border-slate-300 text-slate-800'
-                          : 'bg-slate-950 border-slate-700 text-emerald-300'
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
+                        isLight ? 'bg-slate-50 border-slate-300 text-emerald-700' : 'bg-slate-950 border-slate-700 text-emerald-300'
                       }`}
                     >
                       <option value="=">= (Standard Equal)</option>
-                      <option value=":=">:= (Walrus / Go / Pascal Assignment)</option>
+                      <option value=":=">:= (Walrus / Pascal Assignment)</option>
                       <option value="<-">&lt;- (Arrow / R Assignment)</option>
                       <option value="equals">equals (English assignment)</option>
+                      <option value="is">is (Speech assignment)</option>
                     </select>
                   </div>
 
                   <div>
-                    <span className={`text-[11px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      String Delimiter / Quotes:
-                    </span>
-                    <select
-                      value={langSpec.syntax.stringDelimiter}
-                      onChange={(e) => handleUpdateSyntax('stringDelimiter', e.target.value as any)}
-                      className={`w-full px-2.5 py-1.5 border rounded-lg text-xs font-mono ${
-                        isLight
-                          ? 'bg-slate-50 border-slate-300 text-slate-800'
-                          : 'bg-slate-950 border-slate-700 text-purple-300'
-                      }`}
-                    >
-                      <option value="both">Both Double ("...") & Single ('...') Quotes Allowed</option>
-                      <option value={'"'}>Double Quotes Only ("...")</option>
-                      <option value={"'"}>Single Quotes Only ('...')</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Logic Operators & Comments */}
-              <div
-                className={`p-4 border rounded-xl space-y-3 shadow-sm ${
-                  isLight ? 'bg-white border-slate-200' : 'bg-slate-900/70 border-slate-800'
-                }`}
-              >
-                <div className="flex items-center space-x-2 font-bold">
-                  <Terminal size={16} className="text-purple-500" />
-                  <span className={isLight ? 'text-slate-800' : 'text-slate-200'}>
-                    Logic Operators & Comments
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <span className={`text-[10px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      Comment Style:
-                    </span>
-                    <select
-                      value={langSpec.syntax.commentStyle}
-                      onChange={(e) => handleUpdateSyntax('commentStyle', e.target.value as any)}
-                      className={`w-full px-2 py-1 border rounded text-xs font-mono ${
-                        isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
-                      }`}
-                    >
-                      <option value="#"># (Python/Shell Hash)</option>
-                      <option value="//">// (C/JS Double Slash)</option>
-                      <option value="--">-- (Lua/SQL Double Dash)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <span className={`text-[10px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      Equality Operator:
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Equality Check Sign:
                     </span>
                     <input
                       type="text"
                       value={langSpec.syntax.equalityOperator}
                       onChange={(e) => handleUpdateSyntax('equalityOperator', e.target.value as any)}
-                      className={`w-full px-2 py-1 border rounded text-xs font-mono ${
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
                         isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
                       }`}
                     />
                   </div>
 
                   <div>
-                    <span className={`text-[10px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      AND Operator:
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      AND Logic Sign:
                     </span>
                     <input
                       type="text"
                       value={langSpec.syntax.andOperator}
                       onChange={(e) => handleUpdateSyntax('andOperator', e.target.value)}
-                      className={`w-full px-2 py-1 border rounded text-xs font-mono ${
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
                         isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-sky-300'
                       }`}
                     />
                   </div>
 
                   <div>
-                    <span className={`text-[10px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      OR Operator:
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      OR Logic Sign:
                     </span>
                     <input
                       type="text"
                       value={langSpec.syntax.orOperator}
                       onChange={(e) => handleUpdateSyntax('orOperator', e.target.value)}
-                      className={`w-full px-2 py-1 border rounded text-xs font-mono ${
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
                         isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-sky-300'
                       }`}
                     />
                   </div>
 
-                  <div className="col-span-2">
-                    <span className={`text-[10px] block mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      Pipe Flow Operator:
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      NOT Logic Sign:
+                    </span>
+                    <input
+                      type="text"
+                      value={langSpec.syntax.notOperator}
+                      onChange={(e) => handleUpdateSyntax('notOperator', e.target.value)}
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
+                        isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-sky-300'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Pipe Flow Sign:
                     </span>
                     <select
-                      value={langSpec.syntax.pipeOperator}
+                      value={langSpec.syntax.pipeOperator || 'none'}
                       onChange={(e) => handleUpdateSyntax('pipeOperator', e.target.value as any)}
-                      className={`w-full px-2 py-1 border rounded text-xs font-mono ${
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono ${
                         isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-slate-200'
                       }`}
                     >
-                      <option value="|=">None</option>
+                      <option value="none">None</option>
                       <option value="|&gt;">|&gt; (Elixir / F# / JS Pipe)</option>
-                      <option value="&gt;&gt;">&gt;&gt; (Haskell Composition Pipe)</option>
+                      <option value="&gt;&gt;">&gt;&gt; (Composition Pipe)</option>
                     </select>
                   </div>
+                </div>
+              </div>
+
+              {/* 6. Easy Action & Calculator Flow Signs */}
+              <div
+                className={`p-5 border rounded-2xl space-y-3 shadow-sm md:col-span-2 ${
+                  isLight ? 'bg-white border-slate-200' : 'bg-slate-900/70 border-slate-800'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 font-bold">
+                    <Calculator size={16} className="text-pink-500" />
+                    <span className={isLight ? 'text-slate-900 font-bold' : 'text-slate-200'}>
+                      6. Easy Action & Calculator Flow Signs (Zero Boilerplate)
+                    </span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-500 font-semibold border border-pink-500/20">
+                    Interactive Math & Calculator
+                  </span>
+                </div>
+                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Empower beginners to write interactive calculators and actions using ultra-simple human words like{' '}
+                  <code className="text-pink-600 dark:text-pink-400 font-bold">inputchoose (+, -, *, /)</code>,{' '}
+                  <code className="text-sky-600 dark:text-sky-400 font-bold">input1(a)</code>,{' '}
+                  <code className="text-emerald-600 dark:text-emerald-400 font-bold">execute(a (op) b)</code>, and{' '}
+                  <code className="text-purple-600 dark:text-purple-400 font-bold">output</code>. Customize each action keyword freely!
+                </p>
+
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs pt-1">
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Choose Action Word:
+                    </span>
+                    <input
+                      type="text"
+                      value={langSpec.syntax.chooseActionKeyword || 'inputchoose'}
+                      onChange={(e) => handleUpdateSyntax('chooseActionKeyword', e.target.value)}
+                      placeholder="e.g. inputchoose, chuno, select"
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono text-xs ${
+                        isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-pink-400'
+                      }`}
+                    />
+                    <span className="text-[9px] text-slate-400">e.g. inputchoose (/, *, +, -)</span>
+                  </div>
+
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Input 1 Word:
+                    </span>
+                    <input
+                      type="text"
+                      value={langSpec.syntax.inputNumberActionKeyword || 'input1'}
+                      onChange={(e) => handleUpdateSyntax('inputNumberActionKeyword', e.target.value)}
+                      placeholder="e.g. input1, dalo1, lo1"
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono text-xs ${
+                        isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-sky-400'
+                      }`}
+                    />
+                    <span className="text-[9px] text-slate-400">e.g. input1(num1) or dalo a</span>
+                  </div>
+
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Input 2 Word:
+                    </span>
+                    <input
+                      type="text"
+                      value={langSpec.syntax.inputNumber2ActionKeyword || 'input2'}
+                      onChange={(e) => handleUpdateSyntax('inputNumber2ActionKeyword', e.target.value)}
+                      placeholder="e.g. input2, dalo2, lo2"
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono text-xs ${
+                        isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-sky-400'
+                      }`}
+                    />
+                    <span className="text-[9px] text-slate-400">e.g. input2(num2) or dalo b</span>
+                  </div>
+
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Execute/Compute Word:
+                    </span>
+                    <input
+                      type="text"
+                      value={langSpec.syntax.computeActionKeyword || 'execute'}
+                      onChange={(e) => handleUpdateSyntax('computeActionKeyword', e.target.value)}
+                      placeholder="e.g. execute, compute, hisab"
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono text-xs ${
+                        isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-emerald-400'
+                      }`}
+                    />
+                    <span className="text-[9px] text-slate-400">e.g. execute(a (op) b)</span>
+                  </div>
+
+                  <div>
+                    <span className={`text-[10px] block mb-1 font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      Output Word:
+                    </span>
+                    <input
+                      type="text"
+                      value={langSpec.syntax.outputActionKeyword || 'output'}
+                      onChange={(e) => handleUpdateSyntax('outputActionKeyword', e.target.value)}
+                      placeholder="e.g. output, dikhao, show"
+                      className={`w-full px-2 py-1.5 border rounded-lg font-mono text-xs ${
+                        isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-purple-400'
+                      }`}
+                    />
+                    <span className="text-[9px] text-slate-400">e.g. output result</span>
+                  </div>
+                </div>
+
+                <div
+                  className={`p-3 rounded-xl border text-[11px] font-mono flex items-center space-x-2 ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-300'
+                  }`}
+                >
+                  <span className="text-pink-500 font-bold">Live Flow Preview:</span>
+                  <span className="truncate">
+                    {langSpec.syntax.chooseActionKeyword || 'inputchoose'} (+, -, *, /) ➔{' '}
+                    {langSpec.syntax.inputNumberActionKeyword || 'input1'}(a) ➔{' '}
+                    {langSpec.syntax.inputNumber2ActionKeyword || 'input2'}(b) ➔{' '}
+                    {langSpec.syntax.computeActionKeyword || 'execute'}(a (op) b) ➔{' '}
+                    {langSpec.syntax.outputActionKeyword || 'output'} ans
+                  </span>
                 </div>
               </div>
             </div>
@@ -2240,66 +2647,198 @@ export const LangCraftApp: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 7: EXPORT & VFS */}
+        {/* TAB 7: EXPORT, PDF RULEBOOK & STANDALONE COMPILER */}
         {activeTab === 'export' && (
-          <div className="flex-1 overflow-y-auto p-6 max-w-3xl mx-auto space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto space-y-6">
             <div className={`border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <h2 className="text-base font-bold flex items-center space-x-2">
                 <Share2 size={18} className="text-purple-500" />
                 <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>
-                  Export, Share & Save to VFS
+                  Export Language: PDF Rulebook, IBP OS & Standalone PC Compiler
                 </span>
               </h2>
               <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                Your custom language specification is fully serialized as portable JSON and can be packaged into projects.
+                Run your language inside IBP OS Studio/Terminal, download a publication-grade PDF rulebook, or run in VS Code on your PC with <code>ibpcompiler</code>.
               </p>
             </div>
 
             {projectCreatedMsg && (
-              <div className="p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 dark:bg-emerald-950/60 dark:border-emerald-500/50 dark:text-emerald-200 flex items-center space-x-2">
+              <div className="p-3.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 dark:bg-emerald-950/60 dark:border-emerald-500/50 dark:text-emerald-200 flex items-center space-x-2 shadow-sm">
                 <CheckCircle2 size={16} />
-                <span>{projectCreatedMsg}</span>
+                <span className="font-semibold">{projectCreatedMsg}</span>
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={handleCopySpec}
-                className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
-                  isLight
-                    ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 shadow-sm'
-                    : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
-                }`}
-              >
-                {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                <span>{copied ? 'Copied Specification' : 'Copy JSON'}</span>
-              </button>
+            {/* 1. PDF Rulebook & Specification Manuals */}
+            <div
+              className={`p-5 border rounded-2xl space-y-3 shadow-sm ${
+                isLight ? 'bg-white border-purple-200' : 'bg-slate-900/80 border-purple-500/30'
+              }`}
+            >
+              <div className="flex items-center space-x-2 font-bold text-sm">
+                <Printer size={18} className="text-purple-600 dark:text-purple-400" />
+                <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>
+                  Language Rulebook & Manual (PDF / Markdown)
+                </span>
+              </div>
+              <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                Generate a formatted, publication-grade specification manual containing your architecture paradigms, complete signs table, keywords dictionary, EBNF grammar, and examples.
+              </p>
 
-              <button
-                onClick={handleDownloadSpec}
-                className="flex items-center space-x-1.5 px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/30 transition cursor-pointer"
-              >
-                <Download size={14} />
-                <span>Download .json Spec</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <button
+                  onClick={handlePrintPDF}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-600/30 transition cursor-pointer"
+                >
+                  <Printer size={15} />
+                  <span>Download Language Rulebook (PDF)</span>
+                </button>
 
-              <button
-                onClick={handleSaveToVFS}
-                className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/30 transition cursor-pointer"
-              >
-                {savedToVFS ? <Check size={14} className="text-emerald-200" /> : <Save size={14} />}
-                <span>{savedToVFS ? 'Saved to VFS!' : 'Save to IBP OS VFS'}</span>
-              </button>
+                <button
+                  onClick={handleDownloadMarkdown}
+                  className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100'
+                      : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                  }`}
+                >
+                  <FileText size={14} />
+                  <span>Download Rulebook (.md)</span>
+                </button>
 
-              <button
-                onClick={handleCreateStudioProject}
-                className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition cursor-pointer"
-              >
-                <FolderPlus size={14} />
-                <span>Create Project in IBP Studio</span>
-              </button>
+                <button
+                  onClick={handleDownloadSpec}
+                  className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100'
+                      : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                  }`}
+                >
+                  <FileDown size={14} />
+                  <span>Download Spec JSON</span>
+                </button>
+              </div>
             </div>
 
+            {/* 2. Run Locally in VS Code on PC with ibpcompiler */}
+            <div
+              className={`p-5 border rounded-2xl space-y-3 shadow-sm ${
+                isLight ? 'bg-white border-sky-200' : 'bg-slate-900/80 border-sky-500/30'
+              }`}
+            >
+              <div className="flex items-center space-x-2 font-bold text-sm">
+                <Package size={18} className="text-sky-600 dark:text-sky-400" />
+                <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>
+                  Run in VS Code on PC with <code>ibpcompiler</code>
+                </span>
+              </div>
+              <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                Download the standalone CLI compiler <strong><code>ibpcompiler.js</code></strong> or a complete VS Code Starter Kit zip containing tasks, launch configs, and your custom language spec.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <button
+                  onClick={handleDownloadVSCodeKit}
+                  disabled={isZipping}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/30 transition cursor-pointer disabled:opacity-50"
+                >
+                  <Package size={15} />
+                  <span>{isZipping ? 'Creating Zip...' : 'Download VS Code Starter Kit (.zip)'}</span>
+                </button>
+
+                <button
+                  onClick={handleDownloadCompiler}
+                  className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100'
+                      : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                  }`}
+                >
+                  <TerminalSquare size={14} />
+                  <span>Download ibpcompiler.js CLI</span>
+                </button>
+              </div>
+
+              {/* Quick CLI command instructions */}
+              <div
+                className={`p-3 rounded-xl border text-[11px] font-mono leading-relaxed ${
+                  isLight
+                    ? 'bg-slate-50 border-slate-200 text-slate-800'
+                    : 'bg-slate-950 border-slate-800 text-sky-200'
+                }`}
+              >
+                <div className={`text-[10px] uppercase font-bold mb-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  Quick Terminal Commands (PC / Mac / Linux):
+                </div>
+                <div>node ibpcompiler.js app.{langSpec.name.toLowerCase().replace(/[^a-z0-9]/g, '')} <span className="opacity-60"># Execute program</span></div>
+                <div>node ibpcompiler.js app.{langSpec.name.toLowerCase().replace(/[^a-z0-9]/g, '')} --compile <span className="opacity-60"># Transpile to canonical IBP</span></div>
+              </div>
+            </div>
+
+            {/* 3. Run inside IBP Virtual Operating System */}
+            <div
+              className={`p-5 border rounded-2xl space-y-3 shadow-sm ${
+                isLight ? 'bg-white border-emerald-200' : 'bg-slate-900/80 border-emerald-500/30'
+              }`}
+            >
+              <div className="flex items-center space-x-2 font-bold text-sm">
+                <FolderPlus size={18} className="text-emerald-600 dark:text-emerald-400" />
+                <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>
+                  Execute & Save Directly in IBP OS
+                </span>
+              </div>
+              <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                Save your language specification into the IBP Virtual File System (VFS) to run inside IBP Studio or the interactive Terminal.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <button
+                  onClick={handleCreateStudioProject}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition cursor-pointer"
+                >
+                  <FolderPlus size={15} />
+                  <span>Create Project & Open in Studio</span>
+                </button>
+
+                <button
+                  onClick={handleRunInTerminal}
+                  className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100'
+                      : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                  }`}
+                >
+                  <Terminal size={14} />
+                  <span>Run in Terminal</span>
+                </button>
+
+                <button
+                  onClick={handleSaveToVFS}
+                  className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100'
+                      : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                  }`}
+                >
+                  {savedToVFS ? <Check size={14} className="text-emerald-600" /> : <Save size={14} />}
+                  <span>{savedToVFS ? 'Saved to VFS!' : 'Save Spec to VFS'}</span>
+                </button>
+
+                <button
+                  onClick={handleCopySpec}
+                  className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                    isLight
+                      ? 'bg-slate-50 border-slate-300 text-slate-700 hover:bg-slate-100'
+                      : 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700'
+                  }`}
+                >
+                  {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                  <span>{copied ? 'Copied JSON' : 'Copy JSON'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Spec JSON Viewer */}
             <div
               className={`border rounded-2xl p-4 font-mono text-xs overflow-x-auto shadow-inner ${
                 isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#0A0F1D] border-slate-800 text-sky-200'

@@ -8,6 +8,7 @@ import { VirtualClock } from '../runtime/clock';
 import { IBPError } from '../diagnostics/error';
 import { registerBuiltins } from '../builtins';
 import { tokenize } from '../lexer/lexer';
+import { preprocessEasyFlow } from '../lexer/preprocessor';
 import { Parser } from '../parser/parser';
 import { Interpreter, InterpreterOptions } from './interpreter';
 import { TokenType } from '../types/tokens';
@@ -87,7 +88,8 @@ export class IBPSession {
     const trimmed = source.trim();
     if (!trimmed) return true;
 
-    const tokens = tokenize(source);
+    const processed = preprocessEasyFlow(source);
+    const tokens = tokenize(processed);
     let braceDepth = 0;
     let parenDepth = 0;
     let bracketDepth = 0;
@@ -106,7 +108,7 @@ export class IBPSession {
     }
 
     // Try parsing; if we get an EOF syntax error expecting closing delimiter, consider incomplete
-    const parser = new Parser(tokens, source);
+    const parser = new Parser(tokens, processed);
     const { errors } = parser.parse();
     for (const err of errors) {
       if (
@@ -126,7 +128,9 @@ export class IBPSession {
     const events: EngineEvent[] = [];
     const output: string[] = [];
 
-    if (!this.isComplete(source)) {
+    const processed = preprocessEasyFlow(source);
+
+    if (!this.isComplete(processed)) {
       return {
         output: [],
         events: [],
@@ -134,8 +138,8 @@ export class IBPSession {
       };
     }
 
-    const tokens = tokenize(source);
-    const parser = new Parser(tokens, source);
+    const tokens = tokenize(processed);
+    const parser = new Parser(tokens, processed);
     const { program, errors } = parser.parse();
 
     if (errors.length > 0) {

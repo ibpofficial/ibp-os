@@ -1261,9 +1261,12 @@ export class Parser {
   }
 }
 
+import { preprocessEasyFlow } from '../lexer/preprocessor';
+
 export function parse(source: string): ParseResult {
-  const tokens = tokenize(source);
-  const parser = new Parser(tokens, source);
+  const processed = preprocessEasyFlow(source);
+  const tokens = tokenize(processed);
+  const parser = new Parser(tokens, processed);
   return parser.parse();
 }
 

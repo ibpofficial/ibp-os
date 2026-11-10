@@ -175,4 +175,32 @@ describe('IBPSession and REPL persistence', () => {
     expect(r2.error).toBeUndefined();
     expect(r2.output).toEqual(['Inside block']);
   });
+
+  it('runs Option 1 easy calculator code with scriptedInput', () => {
+    const code = `
+inputchoose (+, -, *, /)
+input1(a)
+input2(b)
+execute(a (inputchoose) b) into result
+output "Answer is:" result
+celebrate
+`;
+    const res = executeIBP(code, { scriptedInput: ['*', '12', '5'] });
+    expect(res.error).toBeUndefined();
+    expect(res.output.some((line) => line.includes('Answer is: 60') || line.includes('60'))).toBe(true);
+    expect(res.events.some((e) => e.type === 'celebrate')).toBe(true);
+  });
+
+  it('runs Option 1 ultra-concise calculator syntax', () => {
+    const code = `
+inputchoose (/,*,+,-)
+input1
+input2
+execute(input1 (inputchoose) input2)
+output
+`;
+    const res = executeIBP(code, { scriptedInput: ['+', '40', '2'] });
+    expect(res.error).toBeUndefined();
+    expect(res.output).toContain('42');
+  });
 });

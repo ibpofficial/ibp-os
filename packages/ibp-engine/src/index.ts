@@ -4,6 +4,7 @@ export * from './types/values';
 export * from './types/events';
 export * from './types/limits';
 export * from './lexer/lexer';
+export * from './lexer/preprocessor';
 export * from './parser/parser';
 export * from './runtime/environment';
 export * from './runtime/prng';
