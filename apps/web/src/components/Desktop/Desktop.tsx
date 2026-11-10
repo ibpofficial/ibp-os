@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+give me import React, { useEffect, useState, useRef } from 'react';
 import {
   Palette,
   Play,
@@ -269,7 +269,7 @@ export const Desktop: React.FC = () => {
         if (url) setCustomUrl(url);
         const up = localStorage.getItem('ibp_wallpaper_upload');
         if (up) setCustomUploadData(up);
-      } catch {}
+      } catch { }
     };
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('ibp_wallpaper_changed', handleStorageChange);
@@ -317,82 +317,82 @@ export const Desktop: React.FC = () => {
     params?: Record<string, any>;
     renderIcon: () => React.ReactNode;
   }[] = [
-    {
-      id: 'studio',
-      appId: 'studio',
-      title: 'Visual Studio\nCode',
-      renderIcon: () => <VSCodeStudioIcon size={50} showShortcutArrow={true} />,
-    },
-    {
-      id: 'user-files',
-      appId: 'explorer',
-      title: 'Acer',
-      renderIcon: () => <FolderUserIcon size={50} hasUserBadge={true} />,
-    },
-    {
-      id: 'chrome',
-      appId: 'browser',
-      params: { url: 'https://www.zenzy.shop/', title: 'Chrome' },
-      title: 'Google\nChrome',
-      renderIcon: () => <ChromeBrowserIcon size={50} showShortcutArrow={true} />,
-    },
-    {
-      id: 'games',
-      appId: 'games',
-      title: 'Arcade\nGames',
-      renderIcon: () => <ArcadeGamesIcon size={50} showShortcutArrow={true} />,
-    },
-    {
-      id: 'zenzy',
-      appId: 'browser',
-      params: { url: 'https://www.zenzy.shop/', title: 'Zenzy Shop' },
-      title: 'Zenzy\nShop',
-      renderIcon: () => <ZenzyShopIcon size={50} showShortcutArrow={true} />,
-    },
-    {
-      id: 'ishant',
-      appId: 'browser',
-      params: { url: 'https://ishantupadhyay.vercel.app/', title: 'Ishant Portfolio' },
-      title: 'Ishant',
-      renderIcon: () => <IshantPortfolioIcon size={50} showShortcutArrow={true} />,
-    },
-    {
-      id: 'terminal',
-      appId: 'terminal',
-      title: 'Command\nPrompt',
-      renderIcon: () => <TerminalOSIcon size={50} />,
-    },
-    {
-      id: 'langcraft',
-      appId: 'langcraft',
-      title: 'LangCraft\nStudio',
-      renderIcon: () => <LangCraftIcon size={50} />,
-    },
-    {
-      id: 'handbook',
-      appId: 'handbook',
-      title: 'Learn IBP\n(PDF)',
-      renderIcon: () => <HandbookOSIcon size={50} />,
-    },
-    {
-      id: 'settings',
-      appId: 'settings',
-      title: 'Settings',
-      renderIcon: () => <SettingsOSIcon size={50} />,
-    },
-    {
-      id: 'monitor',
-      appId: 'monitor',
-      title: 'System\nMonitor',
-      renderIcon: () => <MonitorOSIcon size={50} />,
-    },
-    {
-      id: 'playground',
-      appId: 'playground',
-      title: 'Playground',
-      renderIcon: () => <PlaygroundOSIcon size={50} />,
-    },
-  ];
+      {
+        id: 'studio',
+        appId: 'studio',
+        title: 'Visual Studio\nCode',
+        renderIcon: () => <VSCodeStudioIcon size={50} showShortcutArrow={true} />,
+      },
+      {
+        id: 'user-files',
+        appId: 'explorer',
+        title: 'Acer',
+        renderIcon: () => <FolderUserIcon size={50} hasUserBadge={true} />,
+      },
+      {
+        id: 'chrome',
+        appId: 'browser',
+        params: { url: 'https://www.zenzy.shop/', title: 'Chrome' },
+        title: 'Google\nChrome',
+        renderIcon: () => <ChromeBrowserIcon size={50} showShortcutArrow={true} />,
+      },
+      {
+        id: 'games',
+        appId: 'games',
+        title: 'Arcade\nGames',
+        renderIcon: () => <ArcadeGamesIcon size={50} showShortcutArrow={true} />,
+      },
+      {
+        id: 'zenzy',
+        appId: 'browser',
+        params: { url: 'https://www.zenzy.shop/', title: 'Zenzy Shop' },
+        title: 'Zenzy\nShop',
+        renderIcon: () => <ZenzyShopIcon size={50} showShortcutArrow={true} />,
+      },
+      {
+        id: 'ishant',
+        appId: 'browser',
+        params: { url: 'https://ishantupadhyay.vercel.app/', title: 'Ishant Portfolio' },
+        title: 'Ishant',
+        renderIcon: () => <IshantPortfolioIcon size={50} showShortcutArrow={true} />,
+      },
+      {
+        id: 'terminal',
+        appId: 'terminal',
+        title: 'Command\nPrompt',
+        renderIcon: () => <TerminalOSIcon size={50} />,
+      },
+      {
+        id: 'langcraft',
+        appId: 'langcraft',
+        title: 'LangCraft\nStudio',
+        renderIcon: () => <LangCraftIcon size={50} />,
+      },
+      {
+        id: 'handbook',
+        appId: 'handbook',
+        title: 'Learn IBP\n(PDF)',
+        renderIcon: () => <HandbookOSIcon size={50} />,
+      },
+      {
+        id: 'settings',
+        appId: 'settings',
+        title: 'Settings',
+        renderIcon: () => <SettingsOSIcon size={50} />,
+      },
+      {
+        id: 'monitor',
+        appId: 'monitor',
+        title: 'System\nMonitor',
+        renderIcon: () => <MonitorOSIcon size={50} />,
+      },
+      {
+        id: 'playground',
+        appId: 'playground',
+        title: 'Playground',
+        renderIcon: () => <PlaygroundOSIcon size={50} />,
+      },
+    ];
 
   // Dynamically load any files saved to Desktop
   const desktopSavedFiles = (files || []).filter(
@@ -524,8 +524,8 @@ export const Desktop: React.FC = () => {
   const defaultPreset = isLight ? 'liquid-light' : 'deep-space';
   const effectivePresetKey =
     presetKey === 'deep-space' && isLight ? 'liquid-light' :
-    presetKey === 'liquid-light' && !isLight ? 'deep-space' :
-    presetKey;
+      presetKey === 'liquid-light' && !isLight ? 'deep-space' :
+        presetKey;
   const activePreset = WALLPAPER_PRESETS[effectivePresetKey] || WALLPAPER_PRESETS[defaultPreset];
   let wallpaperBg = activePreset.bg;
   let bgImageStyle: React.CSSProperties = {
@@ -556,19 +556,17 @@ export const Desktop: React.FC = () => {
         setSelectedDesktopId(null);
       }}
       onContextMenu={handleContextMenu}
-      className={`relative w-screen h-screen overflow-hidden select-none font-sans flex flex-col justify-between ${
-        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#060911] text-slate-100'
-      }`}
+      className={`relative w-screen h-screen overflow-hidden select-none font-sans flex flex-col justify-between ${isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#060911] text-slate-100'
+        }`}
     >
       {/* Dynamic Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none transform scale-105" style={bgImageStyle} />
       {/* Ambient Vignette Overlay */}
       <div
-        className={`absolute inset-0 z-0 pointer-events-none ${
-          isLight
+        className={`absolute inset-0 z-0 pointer-events-none ${isLight
             ? 'bg-gradient-to-t from-white/30 via-transparent to-white/10'
             : 'bg-gradient-to-t from-[#060911]/80 via-transparent to-[#060911]/40'
-        }`}
+          }`}
       />
 
       {/* 1. Desktop Shortcuts Grid (Arranged in columns on the left, like Windows/macOS) */}
@@ -587,13 +585,12 @@ export const Desktop: React.FC = () => {
                 e.stopPropagation();
                 openWindow(sc.appId, sc.params);
               }}
-              className={`flex flex-col items-center justify-start w-[84px] min-h-[92px] p-1.5 rounded-xl transition duration-150 cursor-pointer pointer-events-auto relative text-center group ${
-                isSelected
+              className={`flex flex-col items-center justify-start w-[84px] min-h-[92px] p-1.5 rounded-xl transition duration-150 cursor-pointer pointer-events-auto relative text-center group ${isSelected
                   ? 'bg-sky-500/25 border border-sky-400/60 shadow-lg backdrop-blur-sm'
                   : isLight
-                  ? 'hover:bg-slate-900/10 border border-transparent'
-                  : 'hover:bg-white/10 border border-transparent'
-              }`}
+                    ? 'hover:bg-slate-900/10 border border-transparent'
+                    : 'hover:bg-white/10 border border-transparent'
+                }`}
             >
               {/* Authentic OS Icon */}
               <div className="transition-transform duration-150 group-hover:scale-105">
@@ -602,9 +599,8 @@ export const Desktop: React.FC = () => {
 
               {/* Icon Label Online Below (Permanently Visible, Crisp Text Shadow) */}
               <span
-                className={`mt-1.5 text-[11px] text-center leading-tight whitespace-pre-line tracking-tight px-1 rounded ${
-                  isLight ? 'font-semibold text-slate-900' : 'font-medium text-slate-100'
-                }`}
+                className={`mt-1.5 text-[11px] text-center leading-tight whitespace-pre-line tracking-tight px-1 rounded ${isLight ? 'font-semibold text-slate-900' : 'font-medium text-slate-100'
+                  }`}
                 style={{
                   textShadow: isLight
                     ? '0 1px 2px rgba(255,255,255,0.95), 0 0 6px white'
@@ -632,11 +628,10 @@ export const Desktop: React.FC = () => {
                 openFile(file.path);
                 openWindow('studio');
               }}
-              className={`flex flex-col items-center justify-start w-22 h-24 p-1.5 rounded-xl transition duration-150 cursor-pointer pointer-events-auto relative text-center group ${
-                isSelected
+              className={`flex flex-col items-center justify-start w-22 h-24 p-1.5 rounded-xl transition duration-150 cursor-pointer pointer-events-auto relative text-center group ${isSelected
                   ? 'bg-sky-500/25 border border-sky-400/60 shadow-lg backdrop-blur-sm'
                   : 'hover:bg-white/10 border border-transparent'
-              }`}
+                }`}
             >
               <div className="transition-transform duration-150 group-hover:scale-105">
                 <VSCodeStudioIcon size={48} showShortcutArrow={false} />
@@ -657,9 +652,8 @@ export const Desktop: React.FC = () => {
 
       {/* 2. Minimalist Floating Clock & System Pill (Top Right, Clean & Uncluttered) */}
       <div
-        className={`absolute top-5 right-6 z-10 pointer-events-none transition-opacity duration-300 ${
-          hasVisibleWindows ? 'opacity-30 hover:opacity-100 pointer-events-auto' : 'opacity-100 pointer-events-auto'
-        }`}
+        className={`absolute top-5 right-6 z-10 pointer-events-none transition-opacity duration-300 ${hasVisibleWindows ? 'opacity-30 hover:opacity-100 pointer-events-auto' : 'opacity-100 pointer-events-auto'
+          }`}
       >
         <div
           data-control-center-toggle="true"
@@ -667,11 +661,10 @@ export const Desktop: React.FC = () => {
             e.stopPropagation();
             toggleControlCenter();
           }}
-          className={`liquid-glass px-4 py-2 rounded-2xl shadow-xl flex items-center space-x-3 backdrop-blur-xl cursor-pointer hover:scale-105 transition-all ${
-            isLight
+          className={`liquid-glass px-4 py-2 rounded-2xl shadow-xl flex items-center space-x-3 backdrop-blur-xl cursor-pointer hover:scale-105 transition-all ${isLight
               ? 'bg-white/90 text-slate-900 border border-slate-250 shadow-slate-200/50'
               : 'text-slate-200 border border-white/15'
-          }`}
+            }`}
           title="Click to Open Control Center"
         >
           <div className="flex flex-col text-right">
@@ -691,9 +684,8 @@ export const Desktop: React.FC = () => {
               e.stopPropagation();
               setIsWallpaperModalOpen(true);
             }}
-            className={`p-1.5 rounded-xl hover:bg-white/10 transition pointer-events-auto ${
-              isLight ? 'text-purple-600 hover:bg-purple-50' : 'text-slate-300 hover:text-purple-300'
-            }`}
+            className={`p-1.5 rounded-xl hover:bg-white/10 transition pointer-events-auto ${isLight ? 'text-purple-600 hover:bg-purple-50' : 'text-slate-300 hover:text-purple-300'
+              }`}
             title="Customize Wallpaper"
           >
             <Palette size={16} />
@@ -713,16 +705,14 @@ export const Desktop: React.FC = () => {
         <div
           style={{ position: 'fixed', top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
           onClick={(e) => e.stopPropagation()}
-          className={`fixed z-50 w-60 rounded-2xl shadow-2xl p-1.5 backdrop-blur-3xl text-xs select-none animate-in fade-in zoom-in-95 duration-100 ${
-            isLight
+          className={`fixed z-50 w-60 rounded-2xl shadow-2xl p-1.5 backdrop-blur-3xl text-xs select-none animate-in fade-in zoom-in-95 duration-100 ${isLight
               ? 'bg-white/90 text-slate-900 border border-slate-200/90 shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-black/5'
               : 'liquid-glass text-white border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.8)]'
-          }`}
+            }`}
         >
           <div
-            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border-b mb-1 flex items-center justify-between ${
-              isLight ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/10'
-            }`}
+            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border-b mb-1 flex items-center justify-between ${isLight ? 'text-slate-500 border-slate-200' : 'text-slate-400 border-white/10'
+              }`}
           >
             <span>IBP OS Workspace</span>
             <Command size={11} />
@@ -733,9 +723,8 @@ export const Desktop: React.FC = () => {
               openWindow('studio');
               closeContextMenu();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <Code size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>Open IBP Studio</span>
@@ -746,9 +735,8 @@ export const Desktop: React.FC = () => {
               openWindow('games');
               closeContextMenu();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <Gamepad2 size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>Play Arcade Games</span>
@@ -759,9 +747,8 @@ export const Desktop: React.FC = () => {
               openWindow('browser', { url: 'https://www.zenzy.shop/', title: 'Chrome' });
               closeContextMenu();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <Globe size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>Open Chrome Browser</span>
@@ -772,9 +759,8 @@ export const Desktop: React.FC = () => {
               openWindow('terminal');
               closeContextMenu();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <TerminalIcon size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>Command Prompt (CMD)</span>
@@ -785,9 +771,8 @@ export const Desktop: React.FC = () => {
               openWindow('explorer');
               closeContextMenu();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <Folder size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>File Explorer</span>
@@ -798,9 +783,8 @@ export const Desktop: React.FC = () => {
               handleQuickNewFile();
               closeContextMenu();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <FilePlus size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>New IBP Starter Script</span>
@@ -813,9 +797,8 @@ export const Desktop: React.FC = () => {
               setIsWallpaperModalOpen(true);
               closeContextMenu();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <Palette size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>Personalize Wallpaper...</span>
@@ -826,9 +809,8 @@ export const Desktop: React.FC = () => {
               downloadOfflineBundle();
               closeContextMenu();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <Download size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>Download Offline OS (ZIP)</span>
@@ -838,9 +820,8 @@ export const Desktop: React.FC = () => {
             onClick={() => {
               window.location.reload();
             }}
-            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${
-              isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
-            }`}
+            className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-xl transition text-left ${isLight ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-white/10 text-slate-200 hover:text-white'
+              }`}
           >
             <RefreshCw size={14} className={isLight ? 'text-slate-700' : 'text-slate-300'} />
             <span>Refresh Workspace</span>
@@ -880,25 +861,22 @@ export const Desktop: React.FC = () => {
             <div className="flex space-x-2 bg-slate-900/80 p-1 rounded-xl border border-white/10 text-xs">
               <button
                 onClick={() => setWallpaperType('preset')}
-                className={`flex-1 py-1.5 rounded-lg font-semibold transition ${
-                  wallpaperType === 'preset' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-                }`}
+                className={`flex-1 py-1.5 rounded-lg font-semibold transition ${wallpaperType === 'preset' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+                  }`}
               >
                 Presets & Gradients
               </button>
               <button
                 onClick={() => setWallpaperType('url')}
-                className={`flex-1 py-1.5 rounded-lg font-semibold transition ${
-                  wallpaperType === 'url' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-                }`}
+                className={`flex-1 py-1.5 rounded-lg font-semibold transition ${wallpaperType === 'url' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+                  }`}
               >
                 Custom URL
               </button>
               <button
                 onClick={() => setWallpaperType('upload')}
-                className={`flex-1 py-1.5 rounded-lg font-semibold transition ${
-                  wallpaperType === 'upload' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
-                }`}
+                className={`flex-1 py-1.5 rounded-lg font-semibold transition ${wallpaperType === 'upload' ? 'bg-purple-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+                  }`}
               >
                 Upload Image
               </button>
@@ -911,11 +889,10 @@ export const Desktop: React.FC = () => {
                   <button
                     key={key}
                     onClick={() => handleSelectPreset(key as WallpaperPresetKey)}
-                    className={`flex flex-col items-center p-3 rounded-xl border transition text-left relative group ${
-                      presetKey === key
+                    className={`flex flex-col items-center p-3 rounded-xl border transition text-left relative group ${presetKey === key
                         ? 'border-purple-400 bg-purple-950/40 shadow-md shadow-purple-950/50'
                         : 'border-white/10 bg-slate-900/60 hover:border-white/20'
-                    }`}
+                      }`}
                   >
                     <div
                       className="w-full h-12 rounded-lg border border-white/15 mb-2 shadow-inner"
@@ -1005,7 +982,7 @@ export const Desktop: React.FC = () => {
                         setWallpaperType('preset');
                         try {
                           localStorage.removeItem('ibp_wallpaper_upload');
-                        } catch {}
+                        } catch { }
                       }}
                       className="text-xs text-rose-400 hover:text-rose-300"
                     >
