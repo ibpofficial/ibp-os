@@ -1,0 +1,8 @@
+Welcome to Guess the Number!
+Guess a number between 1 and 100: 50
+Higher!
+Guess a number between 1 and 100: 75
+Lower!
+Guess a number between 1 and 100: 61
+Correct! You found it in 3 tries!
+

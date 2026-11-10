@@ -52,7 +52,7 @@ export class Environment {
         if (binding.isConstant) {
           throw new IBPError({
             kind: 'TypeError',
-            message: `Cannot reassign locked constant "${name}".`,
+            message: `Cannot reassign locked constant "${name}": can't change a locked value.`,
             span,
             hint: `Define "${name}" with "keep" instead of "lock" if it needs to change.`,
           });
@@ -63,8 +63,8 @@ export class Environment {
       curr = curr.parent;
     }
 
-    const candidates = [...this.getAllVariableNames(), ...IBP_KEYWORDS];
-    const suggestion = findClosest(name, candidates);
+    const inScopeNames = this.getAllVariableNames();
+    const suggestion = findClosest(name, inScopeNames);
 
     throw new IBPError({
       kind: 'NameError',
@@ -73,6 +73,29 @@ export class Environment {
       suggestion,
       hint: `define it first with  keep ${name} = ...`,
     });
+  }
+
+  public assignOrDeclare(name: string, value: IBPValue, span?: SourceSpan): void {
+    let curr: Environment | null = this;
+    while (curr) {
+      const binding = curr.bindings.get(name);
+      if (binding) {
+        if (binding.isConstant) {
+          throw new IBPError({
+            kind: 'TypeError',
+            message: `Cannot reassign locked constant "${name}": can't change a locked value.`,
+            span,
+            hint: `Define "${name}" with "keep" instead of "lock" if it needs to change.`,
+          });
+        }
+        binding.value = value;
+        return;
+      }
+      curr = curr.parent;
+    }
+
+    // Not found in any enclosing scope: DECLARE in the current scope
+    this.declareVar(name, value, span);
   }
 
   public get(name: string, span?: SourceSpan): IBPValue {
@@ -85,8 +108,8 @@ export class Environment {
       curr = curr.parent;
     }
 
-    const candidates = [...this.getAllVariableNames(), ...IBP_KEYWORDS];
-    const suggestion = findClosest(name, candidates);
+    const inScopeNames = this.getAllVariableNames();
+    const suggestion = findClosest(name, inScopeNames);
 
     throw new IBPError({
       kind: 'NameError',
@@ -112,6 +135,21 @@ export class Environment {
       curr = curr.parent;
     }
     return Array.from(names);
+  }
+
+  public cloneBindings(): Map<string, Binding> {
+    const clone = new Map<string, Binding>();
+    for (const [k, v] of this.bindings.entries()) {
+      clone.set(k, { ...v });
+    }
+    return clone;
+  }
+
+  public restoreBindings(snapshot: Map<string, Binding>): void {
+    this.bindings.clear();
+    for (const [k, v] of snapshot.entries()) {
+      this.bindings.set(k, { ...v });
+    }
   }
 
   public inspect(): Record<string, { kind: string; isConstant: boolean; value: IBPValue }> {

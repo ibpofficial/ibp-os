@@ -17,7 +17,7 @@ describe('Playground Challenges Verification', () => {
   it.each(CHALLENGES)('verifies challenge: $title', (ch) => {
     // If starter code provides the solution or default structure, test combined
     const fullCode = `${ch.starterCode}\n# --- Verification ---\n${ch.testCheck}`;
-    const { error } = executeIBP(fullCode);
+    const { error } = executeIBP(fullCode, { scriptedInput: ch.scriptedInput });
 
     // If an error is thrown, it should at least not be a SyntaxError in the testCheck
     if (error && error.kind === 'SyntaxError') {

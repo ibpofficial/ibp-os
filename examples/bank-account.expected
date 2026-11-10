@@ -1,0 +1,15 @@
+Welcome to IBP Bank!
+Choose an action (deposit, withdraw, balance, history, quit): balance
+Current balance: 100
+Choose an action (deposit, withdraw, balance, history, quit): deposit
+Amount to deposit: 50
+Deposited 50. New balance: 150
+Choose an action (deposit, withdraw, balance, history, quit): withdraw
+Amount to withdraw: 30
+Withdrew 30. New balance: 120
+Choose an action (deposit, withdraw, balance, history, quit): history
+Transaction History:
+- Deposited 50
+- Withdrew 30
+Choose an action (deposit, withdraw, balance, history, quit): quit
+Thank you for banking with us!

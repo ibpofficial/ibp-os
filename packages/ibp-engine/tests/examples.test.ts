@@ -15,7 +15,12 @@ describe('Examples integration tests', () => {
     }
 
     const expected = fs.readFileSync(expectedPath, 'utf-8').trim();
-    const { output, error } = executeIBP(code);
+    const inputPath = filePath.replace(/\.ibp$/, '.input');
+    const scriptedInput = fs.existsSync(inputPath)
+      ? fs.readFileSync(inputPath, 'utf-8').split(/\r?\n/).filter((l) => l.length > 0)
+      : undefined;
+
+    const { output, error } = executeIBP(code, { scriptedInput });
 
     if (error) {
       throw new Error(`Execution failed in ${filePath}: ${error.format(code)}`);
@@ -39,6 +44,14 @@ describe('Examples integration tests', () => {
 
   it('runs pipes.ibp with exact expected output', () => {
     testExampleFile(path.join(examplesDir, 'pipes.ibp'));
+  });
+
+  it('runs bank-account.ibp with exact expected output', () => {
+    testExampleFile(path.join(examplesDir, 'bank-account.ibp'));
+  });
+
+  it('runs guess-number.ibp with exact expected output', () => {
+    testExampleFile(path.join(examplesDir, 'guess-number.ibp'));
   });
 });
 

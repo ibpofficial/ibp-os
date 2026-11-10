@@ -14,6 +14,19 @@ This reference covers the complete vocabulary, syntax, and built-in library of t
 
 ---
 
+## 1.1 Input & Output
+
+| Command | Purpose | Example |
+|---|---|---|
+| `say` | Print text with newline | `say "Hello, world!"` |
+| `shout` | Print text in UPPERCASE | `shout "Warning!"` |
+| `whisper` | Print text in lowercase | `whisper "Quietly..."` |
+| `ask ... into x` | Prompt user for text input; auto-declares `x` if undeclared | `ask "What is your name?" into name` |
+| `ask text ... into x` | Explicit text input prompt | `ask text "Enter city:" into city` |
+| `ask number ... into x` | Prompt user for number; validates and re-asks if invalid | `ask number "Enter age:" into age` |
+
+---
+
 ## 2. Types & Literals
 
 - **Numbers**: `42`, `-10`, `3.14159`

@@ -43,7 +43,7 @@ export interface ExecutionContext {
   clock: VirtualClock;
   storage: StorageAdapter;
   fs?: FilesystemAdapter;
-  inputProvider?: (prompt: string, isNumber: boolean) => string | Promise<string>;
+  inputProvider?: (prompt: string, kind: 'text' | 'number') => Promise<string> | string;
   onCheck?: (label: string, passed: boolean, expected?: IBPValue, actual?: IBPValue) => void;
 }
 

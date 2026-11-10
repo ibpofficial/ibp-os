@@ -82,6 +82,7 @@ say "Type of player is: {kind(player)}"
       'Booleans can be written as yes/no or true/false.',
       'Variables can hold any type and are checked safely at runtime.',
       'Helpful aliases like "let", "var", and "const" are also supported for convenience!',
+      'Use "ask" to get user input interactively: "ask \\"Name?\\" into name" or "ask number \\"Age?\\" into age" automatically declares variables if not already declared!',
     ],
   },
   {

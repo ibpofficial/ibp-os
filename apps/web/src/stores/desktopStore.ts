@@ -77,7 +77,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
             ? {
                 ...w,
                 isMinimized: false,
-                isMaximized: true, // Always open full screen!
+                isMaximized: w.isMaximized,
                 ...(params ? { params: { ...w.params, ...params }, title: params.title || w.title } : {}),
               }
             : w

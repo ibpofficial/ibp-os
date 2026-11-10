@@ -88,6 +88,8 @@ const KEYWORDS: Record<string, TokenType> = {
   pakka: TokenType.Lock,
   fix: TokenType.Lock,
   poocho: TokenType.Ask,
+  mein: TokenType.Into,
+  me: TokenType.Into,
   agar: TokenType.When,
   warna_agar: TokenType.OrWhen,
   warna: TokenType.Otherwise,
@@ -283,6 +285,10 @@ export class Lexer {
         case '%':
           this.advance();
           tokens.push({ type: TokenType.Percent, value: '%', span: { start, end: this.currentLoc() } });
+          break;
+        case '^':
+          this.advance();
+          tokens.push({ type: TokenType.Power, value: '^', span: { start, end: this.currentLoc() } });
           break;
         case '=':
           this.advance();

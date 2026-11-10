@@ -278,6 +278,7 @@ export class Parser {
     return {
       type: 'VarDeclStmt',
       name: idToken.value,
+      nameSpan: idToken.span,
       init,
       span: { start: keepToken.span.start, end },
     };
@@ -291,6 +292,7 @@ export class Parser {
     return {
       type: 'ConstDeclStmt',
       name: idToken.value,
+      nameSpan: idToken.span,
       init,
       span: { start: lockToken.span.start, end: init.span.end },
     };
@@ -322,18 +324,31 @@ export class Parser {
 
   private parseInput(): InputStmt {
     const start = this.previous().span.start;
-    let isNumber = false;
-    if (this.match(TokenType.Identifier) && this.previous().value === 'number') {
-      isNumber = true;
+    let kind: 'text' | 'number' = 'text';
+    let explicitKind = false;
+    if (this.match(TokenType.Identifier)) {
+      const val = this.previous().value;
+      if (val === 'number') {
+        kind = 'number';
+        explicitKind = true;
+      } else if (val === 'text') {
+        kind = 'text';
+        explicitKind = true;
+      } else {
+        this.current--;
+      }
     }
     const prompt = this.parseExpression();
     this.consume(TokenType.Into, 'Expected "into" after prompt in "ask" statement', 'Example: ask "What is your name?" into name');
     const target = this.consume(TokenType.Identifier, 'Expected variable name after "into"');
     return {
       type: 'InputStmt',
-      isNumber,
+      isNumber: kind === 'number',
+      kind,
+      explicitKind,
       prompt,
       target: target.value,
+      targetSpan: target.span,
       span: { start, end: target.span.end },
     };
   }
@@ -547,12 +562,13 @@ export class Parser {
     const start = this.previous().span.start;
     const item = this.parseExpression();
     this.consume(TokenType.To, 'Expected "to" after item in "add" statement', 'Example: add 40 to scores');
-    const target = this.consume(TokenType.Identifier, 'Expected target list variable in "add" statement').value;
+    const targetToken = this.consume(TokenType.Identifier, 'Expected target list variable in "add" statement');
     return {
       type: 'AddStmt',
       item,
-      target,
-      span: { start, end: this.previous().span.end },
+      target: targetToken.value,
+      targetSpan: targetToken.span,
+      span: { start, end: targetToken.span.end },
     };
   }
 
@@ -560,12 +576,13 @@ export class Parser {
     const start = this.previous().span.start;
     const item = this.parseExpression();
     this.consume(TokenType.From, 'Expected "from" after item in "remove" statement', 'Example: remove 10 from scores');
-    const target = this.consume(TokenType.Identifier, 'Expected target list variable in "remove" statement').value;
+    const targetToken = this.consume(TokenType.Identifier, 'Expected target list variable in "remove" statement');
     return {
       type: 'RemoveStmt',
       item,
-      target,
-      span: { start, end: this.previous().span.end },
+      target: targetToken.value,
+      targetSpan: targetToken.span,
+      span: { start, end: targetToken.span.end },
     };
   }
 

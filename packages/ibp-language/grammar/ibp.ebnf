@@ -36,8 +36,8 @@ ConstDecl       = "lock" IDENTIFIER "=" Expression ;
 Assignment      = Target "=" Expression ;
 Target          = IDENTIFIER { "[" Expression "]" | "." IDENTIFIER } ;
 
-OutputStmt      = ( "say" | "shout" | "whisper" ) Expression ;
-InputStmt       = "ask" [ "number" ] Expression "into" IDENTIFIER ;
+OutputStmt      = ( "say" | "shout" | "whisper" | "bolo" | "chillao" | "dhire" ) Expression ;
+InputStmt       = ( "ask" | "poocho" ) [ "number" | "text" ] Expression ( "into" | "mein" | "me" ) IDENTIFIER ;
 
 WhenStmt        = "when" Expression Block { "orwhen" Expression Block } [ "otherwise" Block ] ;
 UnlessStmt      = "unless" Expression Block ;

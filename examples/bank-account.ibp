@@ -1,0 +1,46 @@
+say "Welcome to IBP Bank!"
+keep balance = 100
+keep history = []
+
+forever {
+  ask "Choose an action (deposit, withdraw, balance, history, quit):" into action
+
+  when action is "quit" {
+    say "Thank you for banking with us!"
+    stop
+  } orwhen action is "balance" {
+    say "Current balance: {balance}"
+  } orwhen action is "deposit" {
+    ask number "Amount to deposit:" into amount
+    when amount <= 0 {
+      say "Deposit amount must be positive"
+    } otherwise {
+      balance = balance + amount
+      add "Deposited {amount}" to history
+      say "Deposited {amount}. New balance: {balance}"
+    }
+  } orwhen action is "withdraw" {
+    ask number "Amount to withdraw:" into amount
+    when amount <= 0 {
+      say "Withdrawal amount must be positive"
+    } orwhen amount > balance {
+      say "Insufficient funds! Current balance: {balance}"
+    } otherwise {
+      balance = balance - amount
+      add "Withdrew {amount}" to history
+      say "Withdrew {amount}. New balance: {balance}"
+    }
+  } orwhen action is "history" {
+    when length(history) is 0 {
+      say "No transactions yet."
+    } otherwise {
+      say "Transaction History:"
+      for entry in history {
+        say "- {entry}"
+      }
+    }
+  } otherwise {
+    say "Unknown command: {action}"
+  }
+}
+

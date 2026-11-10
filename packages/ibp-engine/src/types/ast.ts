@@ -50,12 +50,14 @@ export interface BlockStmt extends BaseNode {
 export interface VarDeclStmt extends BaseNode {
   type: 'VarDeclStmt';
   name: string;
+  nameSpan?: SourceSpan;
   init?: Expression;
 }
 
 export interface ConstDeclStmt extends BaseNode {
   type: 'ConstDeclStmt';
   name: string;
+  nameSpan?: SourceSpan;
   init: Expression;
 }
 
@@ -77,8 +79,11 @@ export interface OutputStmt extends BaseNode {
 export interface InputStmt extends BaseNode {
   type: 'InputStmt';
   isNumber: boolean;
+  kind?: 'text' | 'number';
+  explicitKind?: boolean;
   prompt: Expression;
   target: string;
+  targetSpan?: SourceSpan;
 }
 
 export interface WhenBranch {
@@ -163,12 +168,14 @@ export interface AddStmt extends BaseNode {
   type: 'AddStmt';
   item: Expression;
   target: string;
+  targetSpan?: SourceSpan;
 }
 
 export interface RemoveStmt extends BaseNode {
   type: 'RemoveStmt';
   item: Expression;
   target: string;
+  targetSpan?: SourceSpan;
 }
 
 export interface AttemptStmt extends BaseNode {

@@ -7,9 +7,57 @@ recipe divide(a, b) {
   }
   give a / b
 }
+recipe remainder(a, b) => a % b
+recipe toPower(a, b) => a ^ b
 
-say "10 + 5 = {add(10, 5)}"
-say "10 - 5 = {subtract(10, 5)}"
-say "10 * 5 = {multiply(10, 5)}"
-say "10 / 5 = {divide(10, 5)}"
+expect add(10, 5) is 15
+expect subtract(10, 5) is 5
+expect multiply(10, 5) is 50
+expect divide(10, 5) is 2
+expect remainder(10, 3) is 1
+expect toPower(2, 3) is 8
 
+recipe calculate(a, op, b) {
+  when op is "+" {
+    give add(a, b)
+  } orwhen op is "-" {
+    give subtract(a, b)
+  } orwhen op is "*" {
+    give multiply(a, b)
+  } orwhen op is "/" {
+    give divide(a, b)
+  } orwhen op is "%" {
+    give remainder(a, b)
+  } orwhen op is "^" {
+    give toPower(a, b)
+  } otherwise {
+    raise "Unknown operator: {op}"
+  }
+}
+
+keep history = []
+
+forever {
+  ask "Operator (+, -, *, /, %, ^ or quit):" into op
+  when op is "quit" {
+    stop
+  }
+
+  ask number "First number:" into a
+  ask number "Second number:" into b
+
+  attempt {
+    keep result = calculate(a, op, b)
+    say "{a} {op} {b} = {result}"
+    add result to history
+  } rescue err {
+    say err.message
+  }
+}
+
+when length(history) > 0 {
+  say "Calculations: {length(history)}"
+  say "Total: {total(history)}"
+  say "Average: {history |> average}"
+  celebrate
+}

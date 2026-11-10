@@ -1,5 +1,12 @@
-10 + 5 = 15
-10 - 5 = 5
-10 * 5 = 50
-10 / 5 = 2
-
+Operator (+, -, *, /, %, ^ or quit): +
+First number: 10
+Second number: 20
+10 + 20 = 30
+Operator (+, -, *, /, %, ^ or quit): /
+First number: 5
+Second number: 0
+Cannot divide by zero
+Operator (+, -, *, /, %, ^ or quit): quit
+Calculations: 1
+Total: 30
+Average: 30

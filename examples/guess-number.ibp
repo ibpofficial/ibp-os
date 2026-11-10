@@ -1,0 +1,19 @@
+say "Welcome to Guess the Number!"
+keep target = luck(1, 100)
+keep attempts = 0
+
+forever {
+  ask number "Guess a number between 1 and 100:" into guess
+  attempts = attempts + 1
+
+  when guess is target {
+    say "Correct! You found it in {attempts} tries!"
+    celebrate
+    stop
+  } orwhen guess < target {
+    say "Higher!"
+  } otherwise {
+    say "Lower!"
+  }
+}
+

@@ -70,11 +70,15 @@ score = score + 10     # Reassignment
 
 ### 4.2 Output and Input
 ```ibp
-say "Hello, {name}!"   # Prints with newline
-shout "alert"          # Prints text transformed to UPPERCASE
-whisper "secret"       # Prints text transformed to lowercase
-ask "Name?" into name  # Reads string input into variable
-ask number "Age?" into age # Reads numerical input (prompts again until valid)
+say "Hello, {name}!"       # Prints with newline
+shout "alert"              # Prints text transformed to UPPERCASE
+whisper "secret"           # Prints text transformed to lowercase
+ask "Name?" into name      # Reads string input; automatically declares `name` if not already declared
+ask text "City?" into city # Explicit text form; auto-declares `city` if not already declared
+ask number "Age?" into age # Reads numerical input (re-asks automatically if invalid, up to 5 attempts)
+# If target variable exists in any enclosing scope, it is updated.
+# If target variable is a locked constant, a TypeError is raised ("can't change a locked value").
+# Hinglish aliases: poocho [number | text] "..." into/mein target
 ```
 
 ### 4.3 Conditionals

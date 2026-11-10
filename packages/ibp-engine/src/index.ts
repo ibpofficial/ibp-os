@@ -12,5 +12,6 @@ export * from './diagnostics/error';
 export * from './builtins';
 export * from './builtins/tips';
 export * from './interpreter/interpreter';
+export * from './interpreter/session';
 export * from './formatter/formatter';
 

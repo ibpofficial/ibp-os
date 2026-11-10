@@ -8,6 +8,7 @@ export type EngineEvent =
   | { type: 'call-pushed'; recipeName: string; args: IBPValue[]; depth: number }
   | { type: 'call-popped'; recipeName: string; returnValue: IBPValue; depth: number }
   | { type: 'output'; text: string; mode: 'say' | 'shout' | 'whisper' }
+  | { type: 'awaiting-input'; prompt: string; kind: 'text' | 'number'; id?: string }
   | { type: 'error'; error: IBPError }
   | { type: 'check-passed'; label?: string; actual: IBPValue }
   | { type: 'check-failed'; label?: string; actual: IBPValue; expected?: IBPValue; message: string }

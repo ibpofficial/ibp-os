@@ -8,6 +8,7 @@ export type IBPErrorKind =
   | 'RangeError'
   | 'FileError'
   | 'LimitError'
+  | 'InputError'
   | 'RaisedError';
 
 export interface IBPErrorOptions {
@@ -103,13 +104,17 @@ export function levenshtein(a: string, b: string): number {
   return matrix[bn][an];
 }
 
-export function findClosest(word: string, candidates: string[], maxDistance = 3): string | undefined {
+export function findClosest(word: string, candidates: string[], maxDistance?: number): string | undefined {
+  if (!word || word.length < 3) return undefined;
   let closest: string | undefined;
-  let bestDist = maxDistance + 1;
+  const maxAllowed = maxDistance ?? (word.length === 3 ? 1 : 2);
+  let bestDist = maxAllowed + 1;
 
   for (const candidate of candidates) {
+    if (!candidate || candidate.length < 3) continue;
+    if (candidate.toLowerCase() === word.toLowerCase()) continue;
     const dist = levenshtein(word.toLowerCase(), candidate.toLowerCase());
-    if (dist < bestDist) {
+    if (dist <= maxAllowed && dist < bestDist) {
       bestDist = dist;
       closest = candidate;
     }

@@ -48,6 +48,8 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
   const isLight = theme === 'light';
   const isFocused = activeWindowId === window.id;
   const isDragging = useRef(false);
+  const isResizing = useRef(false);
+  const [activeResizing, setActiveResizing] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, winX: 0, winY: 0 });
 
   // Handle Dragging via Title Bar
@@ -74,6 +76,88 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
 
     const handleMouseUp = () => {
       isDragging.current = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // Handle 8-Direction Window Resizing
+  const handleMouseDownResize = (direction: string, e: React.MouseEvent) => {
+    if (window.isMaximized) return;
+    e.stopPropagation();
+    e.preventDefault();
+    isResizing.current = true;
+    setActiveResizing(true);
+    focusWindow(window.id);
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWinX = window.x;
+    const startWinY = window.y;
+    const startWinW = window.width;
+    const startWinH = window.height;
+
+    const minW = 440;
+    const minH = 280;
+    const screenW = typeof globalThis.window !== 'undefined' ? globalThis.window.innerWidth : 1920;
+    const screenH = typeof globalThis.window !== 'undefined' ? globalThis.window.innerHeight : 1080;
+    const maxW = screenW - 20;
+    const maxH = screenH - 50;
+
+    const handleMouseMove = (moveEv: MouseEvent) => {
+      if (!isResizing.current) return;
+      const dx = moveEv.clientX - startX;
+      const dy = moveEv.clientY - startY;
+
+      let newX = startWinX;
+      let newY = startWinY;
+      let newW = startWinW;
+      let newH = startWinH;
+
+      // Horizontal resize
+      if (direction.includes('e')) {
+        newW = Math.max(minW, Math.min(maxW, startWinW + dx));
+      }
+      if (direction.includes('w')) {
+        const potentialW = startWinW - dx;
+        if (potentialW >= minW && potentialW <= maxW) {
+          newW = potentialW;
+          newX = startWinX + dx;
+        } else if (potentialW < minW) {
+          newW = minW;
+          newX = startWinX + (startWinW - minW);
+        }
+      }
+
+      // Vertical resize
+      if (direction.includes('s')) {
+        newH = Math.max(minH, Math.min(maxH, startWinH + dy));
+      }
+      if (direction.includes('n')) {
+        const potentialH = startWinH - dy;
+        if (potentialH >= minH && potentialH <= maxH) {
+          newH = potentialH;
+          newY = startWinY + dy;
+        } else if (potentialH < minH) {
+          newH = minH;
+          newY = startWinY + (startWinH - minH);
+        }
+      }
+
+      updateWindowBounds(window.id, {
+        x: Math.max(0, Math.round(newX)),
+        y: Math.max(0, Math.round(newY)),
+        width: Math.round(newW),
+        height: Math.round(newH),
+      });
+    };
+
+    const handleMouseUp = () => {
+      isResizing.current = false;
+      setActiveResizing(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -164,7 +248,9 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
     <div
       style={style}
       onMouseDown={() => focusWindow(window.id)}
-      className={`pointer-events-auto flex flex-col overflow-hidden transition-all duration-150 ${
+      className={`pointer-events-auto flex flex-col overflow-hidden ${
+        activeResizing ? '' : 'transition-all duration-150'
+      } ${
         window.isMaximized ? 'rounded-none border-0 shadow-none' : 'rounded-xl shadow-2xl'
       } ${
         isLight
@@ -331,6 +417,60 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
           {renderAppContent()}
         </ErrorBoundary>
       </div>
+
+      {/* 8-Direction Window Resize Handles (When not in full screen) */}
+      {!window.isMaximized && (
+        <>
+          {/* North edge */}
+          <div
+            onMouseDown={(e) => handleMouseDownResize('n', e)}
+            className="absolute top-0 left-2 right-2 h-2 cursor-ns-resize z-50 hover:bg-sky-500/20 active:bg-sky-500/40"
+            title="Resize window height"
+          />
+          {/* South edge */}
+          <div
+            onMouseDown={(e) => handleMouseDownResize('s', e)}
+            className="absolute bottom-0 left-2 right-2 h-2.5 cursor-ns-resize z-50 hover:bg-sky-500/20 active:bg-sky-500/40"
+            title="Resize window height"
+          />
+          {/* West edge */}
+          <div
+            onMouseDown={(e) => handleMouseDownResize('w', e)}
+            className="absolute top-2 bottom-2 left-0 w-2 cursor-ew-resize z-50 hover:bg-sky-500/20 active:bg-sky-500/40"
+            title="Resize window width"
+          />
+          {/* East edge */}
+          <div
+            onMouseDown={(e) => handleMouseDownResize('e', e)}
+            className="absolute top-2 bottom-2 right-0 w-2.5 cursor-ew-resize z-50 hover:bg-sky-500/20 active:bg-sky-500/40"
+            title="Resize window width"
+          />
+          {/* North-West corner */}
+          <div
+            onMouseDown={(e) => handleMouseDownResize('nw', e)}
+            className="absolute top-0 left-0 w-4 h-4 cursor-nwse-resize z-50 hover:bg-sky-500/30 active:bg-sky-500/50 rounded-tl-xl"
+            title="Resize window"
+          />
+          {/* North-East corner */}
+          <div
+            onMouseDown={(e) => handleMouseDownResize('ne', e)}
+            className="absolute top-0 right-0 w-4 h-4 cursor-nesw-resize z-50 hover:bg-sky-500/30 active:bg-sky-500/50 rounded-tr-xl"
+            title="Resize window"
+          />
+          {/* South-West corner */}
+          <div
+            onMouseDown={(e) => handleMouseDownResize('sw', e)}
+            className="absolute bottom-0 left-0 w-4 h-4 cursor-nesw-resize z-50 hover:bg-sky-500/30 active:bg-sky-500/50 rounded-bl-xl"
+            title="Resize window"
+          />
+          {/* South-East corner */}
+          <div
+            onMouseDown={(e) => handleMouseDownResize('se', e)}
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50 hover:bg-sky-500/30 active:bg-sky-500/50 rounded-br-xl"
+            title="Resize window"
+          />
+        </>
+      )}
     </div>
   );
 };

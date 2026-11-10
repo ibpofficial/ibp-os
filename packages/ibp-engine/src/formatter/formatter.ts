@@ -39,8 +39,10 @@ function formatStatement(stmt: Statement, depth: number): string {
       return `${p}${formatExpression(stmt.target)} = ${formatExpression(stmt.value)}`;
     case 'OutputStmt':
       return `${p}${stmt.mode} ${formatExpression(stmt.value)}`;
-    case 'InputStmt':
-      return `${p}ask ${stmt.isNumber ? 'number ' : ''}${formatExpression(stmt.prompt)} into ${stmt.target}`;
+    case 'InputStmt': {
+      const kindStr = stmt.isNumber ? 'number ' : (stmt.explicitKind && stmt.kind === 'text' ? 'text ' : '');
+      return `${p}ask ${kindStr}${formatExpression(stmt.prompt)} into ${stmt.target}`;
+    }
     case 'WhenStmt': {
       let result = `${p}when ${formatExpression(stmt.condition)} ${formatBlock(stmt.body, depth)}`;
       for (const branch of stmt.orwhenBranches) {

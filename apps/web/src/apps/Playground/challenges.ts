@@ -8,6 +8,7 @@ export interface Challenge {
   starterCode: string;
   testCheck: string; // IBP code appended to test student's solution
   hint: string;
+  scriptedInput?: string[];
 }
 
 export const CHALLENGES: Challenge[] = [
@@ -43,6 +44,18 @@ export const CHALLENGES: Challenge[] = [
     starterCode: `# Shout "loud" and whisper "quiet"\nshout "loud"\nwhisper "quiet"\nkeep verified = yes\n`,
     testCheck: `expect verified is yes`,
     hint: 'Use `shout "loud"` and `whisper "quiet"`.',
+  },
+  {
+    id: 'c-interactive-ask',
+    title: '3b. Asking the User',
+    difficulty: 'Beginner',
+    xp: 70,
+    category: 'Input',
+    description: 'Use `ask "What is your name?" into userName` to collect user input without needing to declare userName beforehand.',
+    starterCode: `# Ask the user for their name into userName\nask "What is your name?" into userName\nsay "Welcome, {userName}!"\n`,
+    testCheck: `expect userName is "Aria"`,
+    hint: 'Type: `ask "What is your name?" into userName`',
+    scriptedInput: ['Aria'],
   },
   {
     id: 'c4-calculator',

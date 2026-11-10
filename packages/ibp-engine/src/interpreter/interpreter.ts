@@ -70,7 +70,9 @@ export interface InterpreterOptions {
   immediateClock?: boolean;
   onEvent?: EventHandler;
   sourceCode?: string;
-  inputProvider?: (prompt: string, isNumber: boolean) => string;
+  inputProvider?: (prompt: string, kind: 'text' | 'number') => Promise<string> | string;
+  scriptedInput?: string[];
+  printBareExpressions?: boolean;
 }
 
 export type ExecutionStatus = 'idle' | 'running' | 'paused' | 'stopped' | 'completed' | 'error';
@@ -96,9 +98,12 @@ export class Interpreter {
   private status: ExecutionStatus = 'idle';
   private breakpoints = new Set<number>();
   private activeGenerator: Generator<EngineEvent, void, unknown> | null = null;
-  private inputProvider?: (prompt: string, isNumber: boolean) => string;
+  private inputProvider?: (prompt: string, kind: 'text' | 'number') => Promise<string> | string;
+  private scriptedInput?: string[];
+  private printBareExpressions = false;
+  private lastExprValue?: IBPValue;
 
-  constructor(options: InterpreterOptions = {}) {
+  constructor(options: InterpreterOptions = {}, existingGlobalEnv?: Environment) {
     this.limits = { ...DEFAULT_LIMITS, ...options.limits };
     this.storage = options.storage || {
       getItem: () => null,
@@ -110,17 +115,23 @@ export class Interpreter {
     this.clock = new VirtualClock(options.immediateClock ?? true);
     this.sourceCode = options.sourceCode || '';
     this.inputProvider = options.inputProvider;
+    this.scriptedInput = options.scriptedInput ? [...options.scriptedInput] : undefined;
+    this.printBareExpressions = options.printBareExpressions ?? false;
 
     if (options.onEvent) {
       this.eventHandlers.push(options.onEvent);
     }
 
-    const builtinsEnv = new Environment(null);
-    registerBuiltins(builtinsEnv);
-    this.initBuiltins(builtinsEnv);
-
-    this.globalEnv = new Environment(builtinsEnv);
-    this.currentEnv = this.globalEnv;
+    if (existingGlobalEnv) {
+      this.globalEnv = existingGlobalEnv;
+      this.currentEnv = existingGlobalEnv;
+    } else {
+      const builtinsEnv = new Environment(null);
+      registerBuiltins(builtinsEnv);
+      this.initBuiltins(builtinsEnv);
+      this.globalEnv = new Environment(builtinsEnv);
+      this.currentEnv = this.globalEnv;
+    }
   }
 
   private initBuiltins(builtinsEnv: Environment): void {
@@ -314,9 +325,50 @@ export class Interpreter {
   // Synchronous run all
   public run(program: ProgramNode): void {
     const gen = this.runProgram(program);
-    while (!gen.next().done) {
-      // iterate generator to completion
+    let nextArg: unknown = undefined;
+    while (true) {
+      const res = gen.next(nextArg);
+      if (res.done) break;
+      const event = res.value;
+      if (event && typeof event === 'object' && event.type === 'awaiting-input') {
+        if (this.scriptedInput) {
+          if (this.scriptedInput.length === 0) {
+            throw new IBPError({
+              kind: 'InputError',
+              message: 'This program needs input, but none is available.',
+              hint: 'Scripted input ran out of values.',
+              sourceCode: this.sourceCode,
+            });
+          }
+          nextArg = this.scriptedInput.shift();
+        } else {
+          throw new IBPError({
+            kind: 'InputError',
+            message: 'This program needs input, but none is available.',
+            hint: 'Provide an input source or run interactively.',
+            sourceCode: this.sourceCode,
+          });
+        }
+      } else {
+        nextArg = undefined;
+      }
     }
+  }
+
+  public getLastExprValue(): IBPValue | undefined {
+    return this.lastExprValue;
+  }
+
+  public evalExpressionDirect(expr: Expression): IBPValue {
+    return this.evalExpression(expr);
+  }
+
+  public executeStatementDirect(stmt: Statement): Generator<EngineEvent, JumpSignal | void, unknown> {
+    return this.executeStatement(stmt);
+  }
+
+  public emitDirect(ev: EngineEvent): void {
+    this.emit(ev);
   }
 
   // Step single statement
@@ -361,7 +413,7 @@ export class Interpreter {
     switch (stmt.type) {
       case 'VarDeclStmt': {
         const initVal = stmt.init ? this.evalExpression(stmt.init) : makeEmpty();
-        this.currentEnv.declareVar(stmt.name, initVal, stmt.span);
+        this.currentEnv.declareVar(stmt.name, initVal, stmt.nameSpan || stmt.span);
         const changeEvent: EngineEvent = {
           type: 'variable-changed',
           name: stmt.name,
@@ -374,7 +426,7 @@ export class Interpreter {
       }
       case 'ConstDeclStmt': {
         const initVal = this.evalExpression(stmt.init);
-        this.currentEnv.declareConst(stmt.name, initVal, stmt.span);
+        this.currentEnv.declareConst(stmt.name, initVal, stmt.nameSpan || stmt.span);
         const changeEvent: EngineEvent = {
           type: 'variable-changed',
           name: stmt.name,
@@ -415,16 +467,90 @@ export class Interpreter {
       case 'InputStmt': {
         const promptVal = this.evalExpression(stmt.prompt);
         const promptStr = valueToString(promptVal);
-        let rawInput = '';
-        if (this.inputProvider) {
-          rawInput = this.inputProvider(promptStr, stmt.isNumber);
+        const kind: 'text' | 'number' = stmt.kind || (stmt.isNumber ? 'number' : 'text');
+        let invalidCount = 0;
+        let finalVal: IBPValue;
+
+        while (true) {
+          if ((this.status as ExecutionStatus) === 'stopped') return;
+
+          const reqEvent: EngineEvent = {
+            type: 'awaiting-input',
+            prompt: promptStr,
+            kind,
+          };
+          this.emit(reqEvent);
+          let rawInput: unknown = yield reqEvent;
+
+          if ((this.status as ExecutionStatus) === 'stopped') return;
+
+          if (rawInput === undefined || rawInput === null) {
+            if (this.scriptedInput) {
+              if (this.scriptedInput.length === 0) {
+                throw new IBPError({
+                  kind: 'InputError',
+                  message: 'This program needs input, but none is available.',
+                  hint: 'Scripted input ran out of values.',
+                  span: stmt.targetSpan || stmt.span,
+                  sourceCode: this.sourceCode,
+                });
+              }
+              rawInput = this.scriptedInput.shift();
+            } else {
+              throw new IBPError({
+                kind: 'InputError',
+                message: 'This program needs input, but none is available.',
+                hint: 'Provide input when prompted.',
+                span: stmt.targetSpan || stmt.span,
+                sourceCode: this.sourceCode,
+              });
+            }
+          }
+
+          const inputStr = String(rawInput);
+          const transcriptText = promptStr
+            ? (promptStr.endsWith(' ') ? `${promptStr}${inputStr}` : `${promptStr} ${inputStr}`)
+            : inputStr;
+          const transcriptEvent: EngineEvent = {
+            type: 'output',
+            text: transcriptText,
+            mode: 'say',
+          };
+          this.emit(transcriptEvent);
+          yield transcriptEvent;
+
+          if (kind === 'number') {
+            const trimmed = inputStr.trim();
+            const num = Number(trimmed);
+            if (trimmed === '' || isNaN(num) || !isFinite(num)) {
+              invalidCount++;
+              if (invalidCount >= 5) {
+                throw new IBPError({
+                  kind: 'InputError',
+                  message: `Expected a number after 5 attempts, but received "${inputStr}".`,
+                  hint: 'Enter a valid number such as 10, -5, or 3.14.',
+                  span: stmt.targetSpan || stmt.span,
+                  sourceCode: this.sourceCode,
+                });
+              }
+              const retryEvent: EngineEvent = {
+                type: 'output',
+                text: "That wasn't a number. Try again.",
+                mode: 'whisper',
+              };
+              this.emit(retryEvent);
+              yield retryEvent;
+              continue;
+            }
+            finalVal = makeNumber(num);
+            break;
+          } else {
+            finalVal = makeText(inputStr);
+            break;
+          }
         }
-        let finalVal: IBPValue = makeText(rawInput);
-        if (stmt.isNumber) {
-          const num = parseFloat(rawInput);
-          finalVal = makeNumber(isNaN(num) ? 0 : num);
-        }
-        this.currentEnv.assign(stmt.target, finalVal, stmt.span);
+
+        this.currentEnv.assignOrDeclare(stmt.target, finalVal, stmt.targetSpan || stmt.span);
         const changeEvent: EngineEvent = {
           type: 'variable-changed',
           name: stmt.target,
@@ -686,12 +812,12 @@ export class Interpreter {
       }
       case 'AddStmt': {
         const itemVal = this.evalExpression(stmt.item);
-        const targetVal = this.currentEnv.get(stmt.target, stmt.span);
+        const targetVal = this.currentEnv.get(stmt.target, stmt.targetSpan || stmt.span);
         if (targetVal.kind !== 'list') {
           throw new IBPError({
             kind: 'TypeError',
             message: `Cannot add item to "${stmt.target}". Target must be a list, found "${targetVal.kind}".`,
-            span: stmt.span,
+            span: stmt.targetSpan || stmt.span,
             sourceCode: this.sourceCode,
           });
         }
@@ -700,12 +826,12 @@ export class Interpreter {
       }
       case 'RemoveStmt': {
         const itemVal = this.evalExpression(stmt.item);
-        const targetVal = this.currentEnv.get(stmt.target, stmt.span);
+        const targetVal = this.currentEnv.get(stmt.target, stmt.targetSpan || stmt.span);
         if (targetVal.kind !== 'list') {
           throw new IBPError({
             kind: 'TypeError',
             message: `Cannot remove item from "${stmt.target}". Target must be a list, found "${targetVal.kind}".`,
-            span: stmt.span,
+            span: stmt.targetSpan || stmt.span,
             sourceCode: this.sourceCode,
           });
         }
@@ -830,7 +956,15 @@ export class Interpreter {
         return { type: 'give', value: val };
       }
       case 'ExprStmt': {
-        this.evalExpression(stmt.expression);
+        const val = this.evalExpression(stmt.expression);
+        this.lastExprValue = val;
+        if (this.printBareExpressions) {
+          const outText = valueToString(val);
+          this.outputLength += outText.length + 1;
+          const outEv: EngineEvent = { type: 'output', text: outText, mode: 'say' };
+          this.emit(outEv);
+          yield outEv;
+        }
         return;
       }
       case 'BlockStmt': {
@@ -1273,6 +1407,7 @@ export function executeIBP(source: string, options: InterpreterOptions = {}): {
   const opts: InterpreterOptions = {
     ...options,
     sourceCode: source,
+    scriptedInput: options.scriptedInput ? [...options.scriptedInput] : undefined,
     onEvent: (ev) => {
       events.push(ev);
       if (ev.type === 'output') output.push(ev.text);
