@@ -95,7 +95,7 @@ Keywords: create your own programming language, custom programming language crea
 │    • Block Delimiters:  { }  |  indent :  |  karo...bas  |  begin...end      │
 │    • Statement End:     Newline (clean)  |  Semicolon ;  |  Colon :          │
 │    • Call Wrappers:     fn(a, b)  |  fn[a, b]  |  fn<a, b>  |  fn a b        │
-│    • List Brackets:     [1, 2, 3] |  (1, 2, 3) |  <1, 2, 3> |  {1, 2, 3}    │
+│    • List Brackets:     [1, 2, 3] |  (1, 2, 3) |  <1, 2, 3> |  {1, 2, 3}     │
 │    • Member Access:     obj.prop  |  obj->prop |  obj::prop |  val |> fn()   │
 │                                                                              │
 │ 2. COMMA STRICTNESS POLICY                                                   │
@@ -115,7 +115,7 @@ Keywords: create your own programming language, custom programming language crea
 │                                                                              │
 │ 5. EXPORT & RUNTIME TARGETS                                                  │
 │    • 📖 Download PDF Rulebook  • 💻 Download ibpcompiler.js CLI             │
-│    • 📦 Download VS Code Zip   • 🪐 Open in IBP Studio / Terminal            │
+│    • 📦 Download VS Code Zip   • 🪐 Open in IBP Studio / Terminal           │
 +──────────────────────────────────────────────────────────────────────────────+
 ```
 
@@ -234,13 +234,13 @@ LangCraft Studio includes an automated **Language Rulebook Generator**:
 
 ```
 +──────────────────────────────────────────────────────────────────────────────+
-│                   LANGUAGE SPECIFICATION & RULEBOOK (A4)                    │
+│                   LANGUAGE SPECIFICATION & RULEBOOK (A4)                     │
 +──────────────────────────────────────────────────────────────────────────────+
 │ 1. ARCHITECTURAL PHILOSOPHY & METADATA                                       │
 │    • Language Name, Author, Paradigms & Version Tag                          │
 │                                                                              │
 │ 2. COMPLETE PUNCTUATION & SIGNS REFERENCE MATRIX                             │
-│    • Blocks, Terminators, Call Wrappers, Lists, Member Access, Quotes       │
+│    • Blocks, Terminators, Call Wrappers, Lists, Member Access, Quotes        │
 │                                                                              │
 │ 3. COMPLETE KEYWORD VOCABULARY DICTIONARY                                    │
 │    • Canonical Meaning, Custom Keyword, Category (I/O, State, Control)       │
@@ -252,7 +252,7 @@ LangCraft Studio includes an automated **Language Rulebook Generator**:
 │    • Working idiomatic examples showing features in action                   │
 │                                                                              │
 │ 6. FORMAL EBNF GRAMMAR SPECIFICATION                                         │
-│    • Production rules ready for parser generators & academic handbooks      │
+│    • Production rules ready for parser generators & academic handbooks       │
 +──────────────────────────────────────────────────────────────────────────────+
 ```
 
